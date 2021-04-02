@@ -1,0 +1,22 @@
+{
+  "name": "tweedentity-v2",
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  },
+  "scripts": {
+    "test": "pnpm run test -r",
+    "test-only": "pnpm run test-only -r",
+    "bin-lint": "eslint -c .eslintrc 'bin/*.js'",
+    "lint": "pnpm run bin-lint && pnpm run lint -r",
+    "reset": "bin/clean-all-modules.sh && pnpm install",
+    "patch-versions": "node bin/patch-versions.js",
+    "pre-push": "pnpm run lint && node bin/pre-push.js",
+    "publish": "node bin/publish-changed-packages.js",
+    "check-unused": "bin/check-unused.sh"
+  },
+  "license": "MIT",
+  "dependencies": {
+  }
+}
