@@ -23,12 +23,12 @@ async function main() {
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   // We get the contract to deploy
-  const BrokenJazz = await hre.ethers.getContractFactory("BrokenJazz");
-  const brokenJazz = await BrokenJazz.deploy("BrokenJazz", "BKJ");
+  const TweedentityV2 = await hre.ethers.getContractFactory("TweedentityV2");
+  const brokenJazz = await TweedentityV2.deploy("TweedentityV2", "BKJ");
 
   await brokenJazz.deployed();
 
-  console.log("BrokenJazz deployed to:", brokenJazz.address);
+  console.log("TweedentityV2 deployed to:", brokenJazz.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

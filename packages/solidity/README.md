@@ -1,4 +1,4 @@
-# BrokenJazz NFT
+# TweedentityV2 NFT
 
 The smart contracts for the Broken Jazz NFT project.
 More info, at some point, at https://brokenjazz.cc
