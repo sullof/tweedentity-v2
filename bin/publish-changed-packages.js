@@ -11,7 +11,7 @@ if (gitDiff.length > 0 && gitDiff[0]) {
 }
 
 function checkAndPublish(dir) {
-  const pkg = dir === 'secrez' ? '' : '@secrez/'
+  const pkg = dir === 'tweedentity' ? '' : '@tweedentity/'
   console.debug(`Checking  ${pkg}${dir}`)
   const version = require(`../packages/${dir}/package.json`).version
   const currVersion = execSync(`npm view ${pkg}${dir} | grep latest`).toString().split('\n')[0].split(' ')[1]
@@ -22,17 +22,7 @@ function checkAndPublish(dir) {
   }
 }
 
-checkAndPublish('utils', '@secrez')
-checkAndPublish('test-helpers', '@secrez')
-checkAndPublish('crypto', '@secrez')
-checkAndPublish('core', '@secrez')
-checkAndPublish('courier', '@secrez')
-checkAndPublish('fs', '@secrez')
-checkAndPublish('hub', '@secrez')
-checkAndPublish('tls', '@secrez')
-checkAndPublish('tunnel', '@secrez')
-checkAndPublish('migrate', '@secrez')
-checkAndPublish('secrez')
+checkAndPublish('solidity', '@tweedentity')
 
 if (!changes) {
   console.debug('No upgrade needed.')

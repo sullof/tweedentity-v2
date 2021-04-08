@@ -3,7 +3,7 @@ const {execSync} = require('child_process')
 let changes
 
 function checkAndGetCoverage(dir) {
-  const org = dir === 'secrez' ? '' : '@secrez/'
+  const org = dir === 'tweedentity' ? '' : '@tweedentity/'
   const pkg = `${org}${dir}`
   console.debug(`Checking  ${pkg}`)
   const version = require(`../packages/${dir}/package.json`).version
@@ -15,16 +15,7 @@ function checkAndGetCoverage(dir) {
   }
 }
 
-checkAndGetCoverage('utils')
-checkAndGetCoverage('test-helpers')
-checkAndGetCoverage('crypto')
-checkAndGetCoverage('core')
-checkAndGetCoverage('courier')
-checkAndGetCoverage('fs')
-checkAndGetCoverage('hub')
-checkAndGetCoverage('tls')
-checkAndGetCoverage('tunnel')
-checkAndGetCoverage('secrez')
+checkAndGetCoverage('solidity')
 
 if (!changes) {
   console.debug('No upgrade needed.')

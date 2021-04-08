@@ -1,4 +1,4 @@
 module.exports = [
-  "TweedentityV2",
-  "BKJ"
+  '0x93a5B8fc1A951894361c4c35523e23ba6Bf073b7',
+  '0x93a5B8fc1A951894361c4c35523e23ba6Bf073b7'
 ]

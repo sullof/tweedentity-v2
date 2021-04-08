@@ -1,6 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require("hardhat-gas-reporter");
+require("@nomiclabs/hardhat-web3");
 
 let env = require('./env.json');
 
@@ -74,8 +75,8 @@ module.exports = {
     },
   },
   etherscan: {
-    // apiKey: env.etherscanKey
-    apiKey: env.bscscanKey
+    apiKey: env.etherscanKey
+    // apiKey: env.bscscanKey
   },
   gasReporter: {
     currency: 'USD'
