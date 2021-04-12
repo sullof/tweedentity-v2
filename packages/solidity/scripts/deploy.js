@@ -28,9 +28,7 @@ async function main() {
   const [
     _oracle,
     _donee,
-    _uri,
-    _maxMintingEvents,
-    _maxNumberOfApps
+    _uri
   ] = args;
 
   if (!chains[process.env.DEPLOY_NETWORK]) {
@@ -43,8 +41,6 @@ async function main() {
       _oracle,
       _donee,
       _uri,
-      _maxMintingEvents,
-      _maxNumberOfApps,
       chains[process.env.DEPLOY_NETWORK]
   );
 

@@ -35,6 +35,9 @@ module.exports = {
     hardhat: {
       blockGasLimit: 10000000,
     },
+    localhost: {
+      url: "http://localhost:8545"
+    },
     eth_goerli: {
       url: `https://eth-goerli.alchemyapi.io/v2/${env.goerliAlchemyKey}`,
       accounts: [env.privateKey]

@@ -1,5 +1,6 @@
 const chains = {
   hardhat: 99,
+  localhost: 98,
   eth_goerli: 0,
   eth_mainnet: 1,
   bsc_testnet: 2,

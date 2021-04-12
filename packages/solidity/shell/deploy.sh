@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bash
 # must be run from the root
 
 export DEPLOY_NETWORK=$1

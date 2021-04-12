@@ -23,6 +23,7 @@ function checkAndPublish(dir) {
 }
 
 checkAndPublish('solidity', '@tweedentity')
+checkAndPublish('commons', '@tweedentity')
 
 if (!changes) {
   console.debug('No upgrade needed.')
