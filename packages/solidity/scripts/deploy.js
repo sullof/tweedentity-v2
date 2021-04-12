@@ -4,6 +4,9 @@
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
+const args = require('../arguments')
+
+const {chains} = require('@tweedentity/commons')
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -22,21 +25,40 @@ async function main() {
 
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
+  const [
+    _oracle,
+    _donee,
+    _uri,
+    _maxMintingEvents,
+    _maxNumberOfApps
+  ] = args;
+
+  if (!chains[process.env.DEPLOY_NETWORK]) {
+    throw new Error('Unsupported chain')
+  }
+
   // We get the contract to deploy
-  const TweedentityV2 = await hre.ethers.getContractFactory("TweedentityV2");
-  const brokenJazz = await TweedentityV2.deploy("TweedentityV2", "BKJ");
+  const Tweedentity = await hre.ethers.getContractFactory("Tweedentity");
+  const tweedentity = await Tweedentity.deploy(
+      _oracle,
+      _donee,
+      _uri,
+      _maxMintingEvents,
+      _maxNumberOfApps,
+      chains[process.env.DEPLOY_NETWORK]
+  );
 
-  await brokenJazz.deployed();
+  await tweedentity.deployed();
 
-  console.log("TweedentityV2 deployed to:", brokenJazz.address);
+  console.log("Tweedentity deployed to:", tweedentity.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main()
-  .then(() => process.exit(0))
-  .catch(error => {
-    console.error(error);
-    process.exit(1);
-  });
+    .then(() => process.exit(0))
+    .catch(error => {
+      console.error(error);
+      process.exit(1);
+    });
 

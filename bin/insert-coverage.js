@@ -10,15 +10,9 @@ function decolorize(str) {
 let target = process.argv[2]
 
 if (![
-  'core',
-  'courier',
-  'crypto',
-  'fs',
-  'hub',
-  'secrez',
-  'tls',
-  'tunnel',
-  'utils'
+  'solidity',
+  'commons',
+  // 'tweedentity'
 ].includes(target)) {
   console.error(`Wrong target: ${target}`)
   // eslint-disable-next-line no-process-exit
