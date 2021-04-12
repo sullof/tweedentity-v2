@@ -1,4 +1,4 @@
-const deployedChains = {
+const chains = {
   hardhat: 99,
   eth_goerli: 0,
   eth_mainnet: 1,
@@ -8,6 +8,6 @@ const deployedChains = {
   matic_mainnet: 5
 }
 
-module.exports = deployedChains
+module.exports = chains
 
 

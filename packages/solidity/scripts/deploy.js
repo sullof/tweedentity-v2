@@ -6,7 +6,7 @@
 const hre = require("hardhat");
 const args = require('../arguments')
 
-const {deployedChains} = require('@tweedentity/commons')
+const {chains} = require('@tweedentity/commons')
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -33,7 +33,7 @@ async function main() {
     _maxNumberOfApps
   ] = args;
 
-  if (!deployedChains[process.env.DEPLOY_NETWORK]) {
+  if (!chains[process.env.DEPLOY_NETWORK]) {
     throw new Error('Unsupported chain')
   }
 
@@ -45,7 +45,7 @@ async function main() {
       _uri,
       _maxMintingEvents,
       _maxNumberOfApps,
-      deployedChains[process.env.DEPLOY_NETWORK]
+      chains[process.env.DEPLOY_NETWORK]
   );
 
   await tweedentity.deployed();

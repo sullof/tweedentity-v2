@@ -9,5 +9,5 @@ module.exports = [
 //     string memory _uri,
 
 //     _chainProgressiveId is set up during deploy based on
-//     @tweedentity/commons#deployedChains hashmap
+//     @tweedentity/commons#chains hashmap
 
