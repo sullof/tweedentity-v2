@@ -1,7 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
-require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-web3");
+// require("hardhat-gas-reporter");
 
 let env = require('./env.json');
 
@@ -34,12 +34,6 @@ module.exports = {
   networks: {
     hardhat: {
       blockGasLimit: 10000000,
-    },
-    localhost: {
-      url: "http://localhost:8545"
-    },
-    ganache: {
-      url: "http://localhost:7545"
     },
     eth_goerli: {
       url: `https://eth-goerli.alchemyapi.io/v2/${env.goerliAlchemyKey}`,
@@ -79,7 +73,8 @@ module.exports = {
     // apiKey: env.bscscanKey
   },
   gasReporter: {
-    currency: 'USD'
+    currency: 'USD',
+    coinmarketcap: env.coinmarketcap
   }
 };
 

@@ -11,8 +11,8 @@ let target = process.argv[2]
 
 if (![
   'solidity',
-  'oracle',
-  'tweedentity'
+  'commons',
+  // 'tweedentity'
 ].includes(target)) {
   console.error(`Wrong target: ${target}`)
   // eslint-disable-next-line no-process-exit

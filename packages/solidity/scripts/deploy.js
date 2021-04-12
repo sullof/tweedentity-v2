@@ -4,7 +4,9 @@
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
-const arguments = require('../arguments')
+const args = require('../arguments')
+
+const {deployedChains} = require('@tweedentity/commons')
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -23,17 +25,32 @@ async function main() {
 
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  const oracle = arguments[0];
-  const org = arguments[1];
+  const [
+    _oracle,
+    _donee,
+    _uri,
+    _maxMintingEvents,
+    _maxNumberOfApps
+  ] = args;
 
+  if (!deployedChains[process.env.DEPLOY_NETWORK]) {
+    throw new Error('Unsupported chain')
+  }
 
   // We get the contract to deploy
-  const TweedentityV2 = await hre.ethers.getContractFactory("TweedentityV2");
-  const tweedentity = await TweedentityV2.deploy(oracle, org);
+  const Tweedentity = await hre.ethers.getContractFactory("Tweedentity");
+  const tweedentity = await Tweedentity.deploy(
+      _oracle,
+      _donee,
+      _uri,
+      _maxMintingEvents,
+      _maxNumberOfApps,
+      deployedChains[process.env.DEPLOY_NETWORK]
+  );
 
   await tweedentity.deployed();
 
-  console.log("TweedentityV2 deployed to:", tweedentity.address);
+  console.log("Tweedentity deployed to:", tweedentity.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
