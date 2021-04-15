@@ -6,7 +6,7 @@
 const hre = require("hardhat");
 const args = require('../arguments')
 
-const {chains, utils} = require('../src')
+const {chains} = require('@tweedentity/common')
 
 async function deploy(ethers) {
 
@@ -111,9 +111,7 @@ async function main() {
 
   const res = await deploy(hre.ethers)
 
-  for (let k in res) {
-    console.log(`$k} deployed to: ${res[k]}`);
-  }
+  console.log(JSON.stringify(res, null, 2));
 
 }
 

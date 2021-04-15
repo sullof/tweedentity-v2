@@ -2,11 +2,11 @@
   "name": "@tweedentity/contracts",
   "version": "2.0.0",
   "description": "Twiptos Smart Contracts",
-  "main": "index.js",
+  "main": "./src",
   "scripts": {
     "deploy": "shell/deploy.sh hardhat",
     "test": "npx hardhat test",
-    "export-artifacts": "cp -r artifacts/contracts/Twiptos.sol/Twiptos.json ../commons/contracts/.",
+    "export": "shell/exportABIs.js",
     "compile": "npx hardhat compile"
   },
   "publishConfig": {
@@ -19,9 +19,11 @@
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.0.0",
+    "@tweedentity/common": "workspace:~0.0.1",
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.3.0",
     "ethers": "^5.0.32",
+    "fs-extra": "^9.1.0",
     "hardhat": "^2.1.2",
     "hardhat-gas-reporter": "^1.0.4",
     "web3": "^1.3.5"

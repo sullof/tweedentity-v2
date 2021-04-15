@@ -1,6 +1,6 @@
 const {expect, assert} = require("chai");
 const {assertThrowsMessage} = require('./helpers')
-const utils = require('../src/utils')
+const {utils} = require('@tweedentity/common')
 
 describe("IdentityClaimer", async function () {
 
