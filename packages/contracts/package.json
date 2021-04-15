@@ -1,12 +1,12 @@
 {
   "name": "@tweedentity/contracts",
   "version": "2.0.0",
-  "description": "Tweedentity Smart Contracts",
+  "description": "Twiptos Smart Contracts",
   "main": "index.js",
   "scripts": {
     "deploy": "shell/deploy.sh hardhat",
     "test": "npx hardhat test",
-    "export-artifacts": "cp -r artifacts/contracts/Tweedentity.sol/Tweedentity.json ../commons/contracts/.",
+    "export-artifacts": "cp -r artifacts/contracts/Twiptos.sol/Twiptos.json ../commons/contracts/.",
     "compile": "npx hardhat compile"
   },
   "publishConfig": {

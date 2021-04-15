@@ -2,11 +2,11 @@
 const config = {
 
 
-  // console.log(`bytes32 constant public token = ${ethers.utils.formatBytes32String('TweedentityToken')};`)
-  // console.log(`bytes32 constant public store = ${ethers.utils.formatBytes32String('TweedentityStore')};`)
+  // console.log(`bytes32 constant public token = ${ethers.utils.formatBytes32String('Twiptos')};`)
+  // console.log(`bytes32 constant public store = ${ethers.utils.formatBytes32String('Tweedentities')};`)
   // console.log(`bytes32 constant public manager = ${ethers.utils.formatBytes32String('IdentityManager')};`)
   // console.log(`bytes32 constant public claimer = ${ethers.utils.formatBytes32String('IdentityClaimer')};`)
-  // console.log(`bytes32 constant public factory = ${ethers.utils.formatBytes32String('TweedentityFactory')};`)
+  // console.log(`bytes32 constant public factory = ${ethers.utils.formatBytes32String('TokenFactory')};`)
   //
   //
   // let token = '0x5477656564656e74697479546f6b656e00000000000000000000000000000000'

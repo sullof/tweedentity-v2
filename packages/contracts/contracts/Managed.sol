@@ -46,6 +46,7 @@ contract Managed is Ownable {
         }
     }
 
+
     /**
     * @dev Sets new manager
     * @param _manager New manager's address

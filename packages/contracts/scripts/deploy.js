@@ -23,58 +23,71 @@ async function deploy(ethers) {
   const addr0 = '0x0000000000000000000000000000000000000000'
 
   // store
-  const TweedentityStore = await ethers.getContractFactory("TweedentityStore");
-  const tweedentityStore = await TweedentityStore.deploy(
+  const Tweedentities = await ethers.getContractFactory("Tweedentities");
+  const tweedentities = await Tweedentities.deploy(
       addr0
   );
-  await tweedentityStore.deployed();
+  await tweedentities.deployed();
 
   // claimer
   const IdentityClaimer = await ethers.getContractFactory("IdentityClaimer");
   const claimer = await IdentityClaimer.deploy(
       addr0,
-      tweedentityStore.address
+      tweedentities.address
   );
   await claimer.deployed();
-  await tweedentityStore.addManager(claimer.address)
+  await tweedentities.addManager(claimer.address)
 
   // identity manager
   const IdentityManager = await ethers.getContractFactory("IdentityManager");
   const identityManager = await IdentityManager.deploy(
       oracle,
-      tweedentityStore.address,
+      tweedentities.address,
       claimer.address
   );
   await identityManager.deployed();
-  await tweedentityStore.addManager(identityManager.address);
+  await tweedentities.addManager(identityManager.address);
   await claimer.addManager(identityManager.address);
 
   // token
-  const TweedentityToken = await ethers.getContractFactory("TweedentityToken");
-  const tweedentityToken = await TweedentityToken.deploy(
+  const Twiptos = await ethers.getContractFactory("Twiptos");
+  const twiptos = await Twiptos.deploy(
       oracle,
       donee,
       uri,
       chains[process.env.DEPLOY_NETWORK],
-      tweedentityStore.address
+      tweedentities.address
   );
-  await tweedentityToken.deployed();
+  await twiptos.deployed();
 
-  const Tweedentity = await ethers.getContractFactory("TweedentityFactory");
-  const tweedentity = await Tweedentity.deploy(
-      tweedentityStore.address,
-      claimer.address,
-      identityManager.address,
-      tweedentityToken.address
+  let names = [
+    'Tweedentities',
+    'IdentityManager',
+    'IdentityClaimer',
+    'Twiptos'
+  ]
+  let bytes32Names = names.map(e => ethers.utils.formatBytes32String(e))
+
+  let addresses = [
+    tweedentities.address,
+    identityManager.address,
+    claimer.address,
+    twiptos.address
+  ]
+
+  Registry = await ethers.getContractFactory("ZeroXNilRegistry");
+  registry = await Registry.deploy(
+      bytes32Names,
+      addresses
   );
-  await tweedentity.deployed();
+  await registry.deployed();
 
   return {
-    TweedentityStore: tweedentityStore.address,
+    Tweedentities: tweedentities.address,
     IdentityClaimer: claimer.address,
     IndentityManager: identityManager.address,
-    TweedentityToken: tweedentityToken.address,
-    Tweedentity: tweedentity.address
+    Twiptos: twiptos.address,
+    ZeroXNilRegistry: registry.address
   }
 
 }

@@ -2,18 +2,16 @@ const {expect, assert} = require("chai");
 const {assertThrowsMessage} = require('./helpers')
 const utils = require('../src/utils')
 
-describe.only("TweedentityFactory", async function () {
+describe("Twiptos", async function () {
 
-  let TweedentityStore
+  let Tweedentities
   let store
   let Claimer
   let claimer
   let IdentityManager
   let identity
-  let TweedentityToken;
-  let token;
-  let Factory;
-  let factory;
+  let Twiptos;
+  let tweedentity;
 
   const apps = {
     twitter: [1, true],
@@ -43,7 +41,7 @@ describe.only("TweedentityFactory", async function () {
     joe = signers[8];
     bill = signers[9];
     await initNetworkAndDeploy()
-    chainId = await token.getChainId()
+    chainId = await tweedentity.getChainId()
   })
 
   function getSignature(address, appId, id, timestamp) {
@@ -56,10 +54,10 @@ describe.only("TweedentityFactory", async function () {
 
   async function initNetworkAndDeploy() {
     // store
-    TweedentityStore = await ethers.getContractFactory("TweedentityStore");
-    store = await TweedentityStore.deploy(addr0);
+    Tweedentities = await ethers.getContractFactory("Tweedentities");
+    store = await Tweedentities.deploy(addr0);
     await store.deployed();
-    //claimer
+    // //claimer
     Claimer = await ethers.getContractFactory("IdentityClaimer");
     claimer = await Claimer.deploy(addr0, store.address);
     await claimer.deployed();
@@ -71,30 +69,23 @@ describe.only("TweedentityFactory", async function () {
     await store.addManager(identity.address);
     await claimer.addManager(identity.address);
     // token token
-    TweedentityToken = await ethers.getContractFactory("TweedentityToken");
-    token = await TweedentityToken.deploy(
-        addr0,
+    Twiptos = await ethers.getContractFactory("Twiptos");
+    tweedentity = await Twiptos.deploy(
+        oracle.address,
+        org.address,
         "https://store.token.com/metadata/{id}.json",
         99,
         store.address
     );
-    await token.deployed();
-    Factory = await ethers.getContractFactory("TweedentityFactory");
-    factory = await Factory.deploy(
-        oracle,
-        org,
-        store.address,
-        token.address
-    );
-    await factory.deployed();
-    await token.addManager(factory.address)
+    await tweedentity.deployed();
+
   }
 
   async function getTimestamp() {
     return (await ethers.provider.getBlock()).timestamp
   }
 
-  describe('#mintSingleToken', async function () {
+  describe('#create', async function () {
 
     beforeEach(async function () {
       await initNetworkAndDeploy();
@@ -107,12 +98,12 @@ describe.only("TweedentityFactory", async function () {
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
-      let tokenId = await token.nextTokenId(1, tid)
+      let tokenId = await tweedentity.nextTokenId(1, tid)
       timestamp = await getTimestamp()
       signature = getSignature(bob.address, 1, tokenId, timestamp)
 
-      await expect(factory.connect(bob).mintSingleToken(1, tokenId, 100, [], [], timestamp, signature))
-          .to.emit(token, 'TransferSingle')
+      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [], []))
+          .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, addr0, bob.address, tokenId, 100);
 
     });
@@ -124,14 +115,14 @@ describe.only("TweedentityFactory", async function () {
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
-      let tokenId = await token.nextTokenId(1, tid)
+      let tokenId = await tweedentity.nextTokenId(1, tid)
       timestamp = await getTimestamp()
       signature = getSignature(bob.address, 1, tokenId, timestamp)
 
-      await expect(factory.connect(bob).mintSingleToken(1, tokenId, 100, [3], [addr0], timestamp, signature))
-          .to.emit(token, 'TransferSingle')
+      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [3], [addr0]))
+          .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, addr0, bob.address, tokenId, 100)
-          .to.emit(token, 'TransferSingle')
+          .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, bob.address, org.address, tokenId, 3);
 
     });
@@ -143,18 +134,18 @@ describe.only("TweedentityFactory", async function () {
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
-      let tokenId = await token.nextTokenId(1, tid)
+      let tokenId = await tweedentity.nextTokenId(1, tid)
       timestamp = await getTimestamp()
       signature = getSignature(bob.address, 1, tokenId, timestamp)
 
-      await expect(factory.connect(bob).mintSingleToken(1, tokenId, 100, [5, 4, 4], [wikileaks.address, assange.address, addr0], timestamp, signature))
-          .to.emit(token, 'TransferSingle')
+      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [5, 4, 4], [wikileaks.address, assange.address, addr0]))
+          .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, addr0, bob.address, tokenId, 100)
-          .to.emit(token, 'TransferSingle')
+          .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, bob.address, wikileaks.address, tokenId, 5)
-          .to.emit(token, 'TransferSingle')
+          .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, bob.address, assange.address, tokenId, 4)
-          .to.emit(token, 'TransferSingle')
+          .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, bob.address, org.address, tokenId, 4);
 
     });
@@ -166,16 +157,16 @@ describe.only("TweedentityFactory", async function () {
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
-      let tokenId = await token.nextTokenId(1, tid)
+      let tokenId = await tweedentity.nextTokenId(1, tid)
       timestamp = await getTimestamp()
       signature = getSignature(bob.address, 1, tokenId, timestamp)
 
-      await expect(factory.connect(bob).mintSingleToken(1, tokenId, 100, [4, 3], [wikileaks.address, assange.address], timestamp, signature))
-          .to.emit(token, 'TransferSingle')
+      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [4, 3], [wikileaks.address, assange.address]))
+          .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, addr0, bob.address, tokenId, 100)
-          .to.emit(token, 'TransferSingle')
+          .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, bob.address, wikileaks.address, tokenId, 4)
-          .to.emit(token, 'TransferSingle')
+          .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, bob.address, assange.address, tokenId, 3);
 
     });
@@ -183,7 +174,7 @@ describe.only("TweedentityFactory", async function () {
   })
 
 
-  describe('#mintManyTokens', async function () {
+  describe('#createBatch', async function () {
 
     beforeEach(async function () {
       await initNetworkAndDeploy();
@@ -196,7 +187,7 @@ describe.only("TweedentityFactory", async function () {
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
-      let tokenId = await token.nextTokenId(1, tid)
+      let tokenId = await tweedentity.nextTokenId(1, tid)
       let tokenIds = [
         tokenId,
         tokenId.add(1),
@@ -208,16 +199,16 @@ describe.only("TweedentityFactory", async function () {
       let donations = [0, 0, 0]
       let donees = []
 
-      await expect(factory.connect(bob).mintManyTokens(
+      await expect(tweedentity.connect(bob).createBatch(
           1,
           tokenIds,
           supplies,
-          donations,
-          donees,
           timestamp,
-          signature
+          signature,
+          donations,
+          donees
       ))
-          .to.emit(token, 'TransferBatch')
+          .to.emit(tweedentity, 'TransferBatch')
           .withArgs(bob.address, addr0, bob.address, tokenIds, supplies);
 
     });
@@ -229,7 +220,7 @@ describe.only("TweedentityFactory", async function () {
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
-      let tokenId = await token.nextTokenId(1, tid)
+      let tokenId = await tweedentity.nextTokenId(1, tid)
       let tokenIds = [
         tokenId,
         tokenId.add(1),
@@ -245,22 +236,22 @@ describe.only("TweedentityFactory", async function () {
         org.address
       ]
 
-      await expect(factory.connect(bob).mintManyTokens(
+      await expect(tweedentity.connect(bob).createBatch(
           1,
           tokenIds,
           supplies,
-          donations,
-          donees,
           timestamp,
-          signature
+          signature,
+          donations,
+          donees
       ))
-          .to.emit(token, 'TransferBatch')
+          .to.emit(tweedentity, 'TransferBatch')
           .withArgs(bob.address, addr0, bob.address, tokenIds, supplies)
-          .to.emit(token, 'TransferBatch')
+          .to.emit(tweedentity, 'TransferBatch')
           .withArgs(bob.address, bob.address, wikileaks.address, tokenIds, [1, 2, 5])
-          .to.emit(token, 'TransferBatch')
+          .to.emit(tweedentity, 'TransferBatch')
           .withArgs(bob.address, bob.address, assange.address, tokenIds, [0, 2, 4])
-          .to.emit(token, 'TransferBatch')
+          .to.emit(tweedentity, 'TransferBatch')
           .withArgs(bob.address, bob.address, org.address, tokenIds, [0, 1, 4])
 
     });

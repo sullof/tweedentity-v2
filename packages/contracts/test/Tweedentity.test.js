@@ -2,9 +2,9 @@ const {expect, assert} = require("chai");
 const {assertThrowsMessage} = require('./helpers')
 const utils = require('../src/utils')
 
-describe("TweedentityStore", async function () {
+describe("Tweedentities", async function () {
 
-  let TweedentityStore;
+  let Tweedentities;
   let store;
 
   const apps = {
@@ -38,8 +38,8 @@ describe("TweedentityStore", async function () {
   })
 
   async function initNetworkAndDeploy() {
-    TweedentityStore = await ethers.getContractFactory("TweedentityStore");
-    store = await TweedentityStore.deploy(manager.address);
+    Tweedentities = await ethers.getContractFactory("Tweedentities");
+    store = await Tweedentities.deploy(manager.address);
     await store.deployed();
   }
 

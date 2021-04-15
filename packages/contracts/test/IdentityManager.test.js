@@ -4,7 +4,7 @@ const utils = require('../src/utils')
 
 describe("IdentityManager", async function () {
 
-  let TweedentityStore
+  let Tweedentities
   let store
   let Claimer
   let claimer
@@ -51,8 +51,8 @@ describe("IdentityManager", async function () {
   }
 
   async function initNetworkAndDeploy() {
-    TweedentityStore = await ethers.getContractFactory("TweedentityStore");
-    store = await TweedentityStore.deploy(addr0);
+    Tweedentities = await ethers.getContractFactory("Tweedentities");
+    store = await Tweedentities.deploy(addr0);
     await store.deployed();
     Claimer = await ethers.getContractFactory("IdentityClaimer");
     claimer = await Claimer.deploy(addr0, store.address);

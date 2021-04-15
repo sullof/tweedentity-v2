@@ -2,20 +2,32 @@
 pragma solidity ^0.8.0;
 
 /**
- * @title TweedentityToken
+ * @title Twiptos
  * @version 2.0.0
  * @author Francesco Sullo <francesco@sullo.co>
- * @dev Tweedentity Semi-fungible & Identity Token
+ * @dev Twiptos Semi-fungible & Identity Token
  */
 
 
-import "./Signable.sol";
-import "./ITweedentityTokenOptimized.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+
 import "./StoreCaller.sol";
+import "./Signable.sol";
 
-contract TweedentityFactory is Signable, StoreCaller {
+contract Twiptos is ERC1155, StoreCaller, Signable {
 
-    ITweedentityTokenOptimized public token;
+    uint constant public maxNumberOfChains = 100;
+    uint constant public maxMintingEvents = 1000;
+
+    // There is no way to validate this on chain.
+    uint public chainProgressiveId;
+
+    struct Minted {
+        uint tokenId;
+        uint timestamp;
+    }
+
+    mapping(uint => mapping(uint => Minted)) private _lastMintedById;
 
     event DoneeUpdated(address indexed _donee);
     event MaxSupplyUpdated(uint _maxSupply);
@@ -28,30 +40,25 @@ contract TweedentityFactory is Signable, StoreCaller {
     uint public minTimeBetweenMintingEvents = 1 days;
     uint public maxTokensByMint = 10;
 
-    struct NextMintedEvent {
-        uint id;
-        uint timestamp;
-    }
-
-    mapping(uint => NextMintedEvent) public nextMintedById;
-
-    struct LastMinted {
-        uint tokenId;
-        uint timestamp;
-    }
 
 
     constructor(
         address _oracle,
         address _donee,
-        address _store,
-        address _token
+        string memory _uri,
+        uint _chainProgressiveId,
+        address _store
     )
+    ERC1155(_uri)
     Signable(_oracle)
     StoreCaller(_store)
     {
+        require(
+            _chainProgressiveId < maxNumberOfChains,
+            "_chainProgressiveId must be < 100"
+        );
+        chainProgressiveId = _chainProgressiveId;
         donee = _donee;
-        token = ITweedentityTokenOptimized(_token);
     }
 
 
@@ -95,14 +102,30 @@ contract TweedentityFactory is Signable, StoreCaller {
     }
 
 
-    function mintSingleToken(
+
+    function nextTokenId(
+        uint _appId,
+        uint _id
+    ) public view
+    returns (uint)
+    {
+        uint tokenId = _id * maxNumberOfChains * store.maxNumberOfApps() * maxMintingEvents
+        + chainProgressiveId * store.maxNumberOfApps() * maxMintingEvents
+        + _appId * maxMintingEvents
+        + _lastMintedById[_appId][_id].tokenId
+        + 1;
+        return tokenId;
+    }
+
+
+    function create(
         uint _appId,
         uint _tokenId,
         uint _supply,
-        uint[] memory _donations,
-        address[] memory _donees,
         uint _timestamp,
-        bytes memory _signature
+        bytes memory _signature,
+        uint[] memory _donations,
+        address[] memory _donees
     ) external
     onlySignedByOracle(_appId, _tokenId, _timestamp, _signature)
     {
@@ -118,20 +141,24 @@ contract TweedentityFactory is Signable, StoreCaller {
             "Identity not found"
         );
 
-        uint[2] memory lastMintedById = token.lastMintedById(_appId, id);
+        require(
+            _tokenId == nextTokenId(_appId, id),
+            "Invalid token ID"
+        );
 
         require(
-            lastMintedById[1] == 0
-            || lastMintedById[1] > block.timestamp - minTimeBetweenMintingEvents,
+            _lastMintedById[_appId][id].timestamp == 0
+            || _lastMintedById[_appId][id].timestamp > block.timestamp - minTimeBetweenMintingEvents,
             "Too early for new minting"
         );
 
-        token.mintToken(_appId, _tokenId, _supply, msg.sender);
-        _makeDonations(_tokenId, _supply, _donations, _donees);
+        _mint(msg.sender, _tokenId, _supply, "");
+        _lastMintedById[_appId][id] = Minted(_lastMintedById[_appId][id].tokenId + 1,  block.timestamp);
+        _donate(_tokenId, _supply, _donations, _donees);
     }
 
 
-    function _makeDonations(
+    function _donate(
         uint _tokenId,
         uint _supply,
         uint[] memory _donations,
@@ -158,20 +185,20 @@ contract TweedentityFactory is Signable, StoreCaller {
                 if (_donees[i] == address(0)) {
                     _donees[i] = donee;
                 }
-                token.giveAway(msg.sender, _donees[i], _tokenId, _donations[i]);
+                safeTransferFrom(msg.sender, _donees[i], _tokenId, _donations[i], "");
             }
         }
     }
 
 
-    function mintManyTokens(
+    function createBatch(
         uint _appId,
         uint[] memory _tokenIds,
         uint[] memory _supplies,
-        uint[] memory _donations,
-        address[] memory _donees,
         uint _timestamp,
-        bytes memory _signature
+        bytes memory _signature,
+        uint[] memory _donations,
+        address[] memory _donees
     ) external
     onlyValidSignature(_timestamp)
     {
@@ -206,22 +233,26 @@ contract TweedentityFactory is Signable, StoreCaller {
                 _supplies[i] > 0 && _supplies[i] <= maxSupply,
                 "Invalid supplies"
             );
+            require(
+                _tokenIds[i] == nextTokenId(_appId, id) + i,
+                "Invalid token ID"
+            );
         }
 
-        uint[2] memory lastMintedById = token.lastMintedById(_appId, id);
-
         require(
-            lastMintedById[1] == 0
-            || lastMintedById[1] > block.timestamp - minTimeBetweenMintingEvents,
+            _lastMintedById[_appId][id].timestamp == 0
+            || _lastMintedById[_appId][id].timestamp > block.timestamp - minTimeBetweenMintingEvents,
             "Too early for new minting"
         );
 
-        token.mintBatchToken(_appId, _tokenIds, _supplies, msg.sender);
-        _makeBatchDonations(_tokenIds, _supplies, _donations, _donees);
+        _mintBatch(msg.sender, _tokenIds, _supplies, "");
+        _lastMintedById[_appId][id] = Minted(_lastMintedById[_appId][id].tokenId + _tokenIds.length,  block.timestamp);
+        _donateBatch(_tokenIds, _supplies, _donations, _donees);
 
     }
 
-    function _makeBatchDonations(
+
+    function _donateBatch(
         uint[] memory _tokenIds,
         uint[] memory _supplies,
         uint[] memory _donations,
@@ -239,7 +270,7 @@ contract TweedentityFactory is Signable, StoreCaller {
         if (totalDonations > 0) {
             for (uint i = 0; i < _donees.length; i++) {
                 uint[] memory amounts = getRations(_donations, i);
-                token.giveBatchAway(msg.sender, _donees[i], _tokenIds, amounts);
+                safeBatchTransferFrom(msg.sender, _donees[i], _tokenIds, amounts, "");
             }
         }
     }
@@ -259,5 +290,6 @@ contract TweedentityFactory is Signable, StoreCaller {
         }
         return ratios;
     }
+
 
 }

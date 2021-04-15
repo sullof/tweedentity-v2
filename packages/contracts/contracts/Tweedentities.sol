@@ -15,7 +15,7 @@ import "./Application.sol";
 
 // the store will be managed by the Claimer and the Manager
 
-contract TweedentityStore is Application, Managed {
+contract Tweedentities is Application, Managed {
 
     event IdentitySet(
         uint indexed _appId,
