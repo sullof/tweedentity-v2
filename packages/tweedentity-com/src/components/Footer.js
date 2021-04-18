@@ -1,4 +1,4 @@
-const React = require('react')
+// eslint-disable-next-line node/no-missing-require
 const {Container, Row, Col} = require('react-bootstrap')
 const Base = require('./Base')
 

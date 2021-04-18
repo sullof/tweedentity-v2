@@ -1,4 +1,3 @@
-const React = require('react')
 const ls = require('local-storage')
 
 // eslint-disable-next-line no-undef

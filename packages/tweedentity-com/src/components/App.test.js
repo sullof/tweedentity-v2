@@ -1,4 +1,6 @@
+// eslint-disable-next-line node/no-missing-require
 const React = require('react')
+// eslint-disable-next-line node/no-missing-require
 const ReactDOM = require('react-dom')
 
 const App = require('./App')

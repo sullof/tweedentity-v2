@@ -21,7 +21,13 @@ var config = {
   },
   plugins: [
     new NodePolyfillPlugin()
-  ]
+  ],
+  externals: {
+    react: 'React',
+    'react-bootstrap': 'ReactBootstrap',
+    'react-dom': 'ReactDOM',
+    'react-router-dom': 'ReactRouterDOM'
+  }
 };
 
 module.exports = (env, argv) => {

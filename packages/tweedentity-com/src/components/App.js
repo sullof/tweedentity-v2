@@ -1,5 +1,8 @@
+// eslint-disable-next-line node/no-missing-require
 const React = require('react')
+// eslint-disable-next-line node/no-missing-require
 const {BrowserRouter, Route} = require('react-router-dom')
+// eslint-disable-next-line node/no-missing-require
 const {Modal, Button} = require('react-bootstrap')
 
 const detectEthereumProvider = require('@metamask/detect-provider')

@@ -1,5 +1,6 @@
-const React = require('react')
+// eslint-disable-next-line node/no-missing-require
 const {Link} = require('react-router-dom')
+// eslint-disable-next-line node/no-missing-require
 const {Navbar, NavDropdown, Button} = require('react-bootstrap')
 
 const Base = require('./Base')

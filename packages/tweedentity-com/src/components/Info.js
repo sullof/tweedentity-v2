@@ -1,4 +1,4 @@
-const React = require('react')
+// eslint-disable-next-line node/no-missing-require
 const {Redirect} = require('react-router-dom')
 
 const Base = require('./Base')

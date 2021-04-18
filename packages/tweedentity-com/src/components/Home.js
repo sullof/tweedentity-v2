@@ -1,6 +1,6 @@
-const React = require('react')
-const {Container, Row, Col, //Button,
-  Badge} = require('react-bootstrap')
+
+// eslint-disable-next-line node/no-missing-require
+const {Container, Row, Col, Badge} = require('react-bootstrap')
 
 
 // eslint-disable-next-line no-undef
