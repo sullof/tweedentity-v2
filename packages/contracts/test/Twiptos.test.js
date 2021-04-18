@@ -102,7 +102,26 @@ describe("Twiptos", async function () {
       timestamp = await getTimestamp()
       signature = getSignature(bob.address, 1, tokenId, timestamp)
 
-      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [], []))
+      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [], [], 0))
+          .to.emit(tweedentity, 'TransferSingle')
+          .withArgs(bob.address, addr0, bob.address, tokenId, 100);
+
+    });
+
+    it("should throw trying to mint again too early", async function () {
+
+      timestamp = await getTimestamp()
+      signature = getSignature(bob.address, 1, tid, timestamp)
+
+      await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
+
+      let tokenId = await tweedentity.nextTokenId(1, tid)
+      timestamp = await getTimestamp()
+      signature = getSignature(bob.address, 1, tokenId, timestamp)
+
+      await tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [], [], 0)
+
+      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [], [], 0))
           .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, addr0, bob.address, tokenId, 100);
 
@@ -119,7 +138,7 @@ describe("Twiptos", async function () {
       timestamp = await getTimestamp()
       signature = getSignature(bob.address, 1, tokenId, timestamp)
 
-      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [3], [addr0]))
+      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [3], [addr0], 0))
           .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, addr0, bob.address, tokenId, 100)
           .to.emit(tweedentity, 'TransferSingle')
@@ -138,7 +157,7 @@ describe("Twiptos", async function () {
       timestamp = await getTimestamp()
       signature = getSignature(bob.address, 1, tokenId, timestamp)
 
-      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [5, 4, 4], [wikileaks.address, assange.address, addr0]))
+      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [5, 4, 4], [wikileaks.address, assange.address, addr0], 0))
           .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, addr0, bob.address, tokenId, 100)
           .to.emit(tweedentity, 'TransferSingle')
@@ -147,7 +166,6 @@ describe("Twiptos", async function () {
           .withArgs(bob.address, bob.address, assange.address, tokenId, 4)
           .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, bob.address, org.address, tokenId, 4);
-
     });
 
     it("should mint a personal tokens with other donations", async function () {
@@ -161,7 +179,7 @@ describe("Twiptos", async function () {
       timestamp = await getTimestamp()
       signature = getSignature(bob.address, 1, tokenId, timestamp)
 
-      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [4, 3], [wikileaks.address, assange.address]))
+      await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [4, 3], [wikileaks.address, assange.address], 0))
           .to.emit(tweedentity, 'TransferSingle')
           .withArgs(bob.address, addr0, bob.address, tokenId, 100)
           .to.emit(tweedentity, 'TransferSingle')
@@ -206,7 +224,8 @@ describe("Twiptos", async function () {
           timestamp,
           signature,
           donations,
-          donees
+          donees,
+          0
       ))
           .to.emit(tweedentity, 'TransferBatch')
           .withArgs(bob.address, addr0, bob.address, tokenIds, supplies);
@@ -243,7 +262,8 @@ describe("Twiptos", async function () {
           timestamp,
           signature,
           donations,
-          donees
+          donees,
+          0
       ))
           .to.emit(tweedentity, 'TransferBatch')
           .withArgs(bob.address, addr0, bob.address, tokenIds, supplies)

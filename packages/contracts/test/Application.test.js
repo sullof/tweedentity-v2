@@ -18,6 +18,7 @@ describe("Application", async function () {
   let owner, manager, manager2, user
   let addr0 = '0x0000000000000000000000000000000000000000'
 
+  let tweedentityApp = ethers.utils.formatBytes32String('tweedentity')
   let twitter = ethers.utils.formatBytes32String('twitter')
   let reddit = ethers.utils.formatBytes32String('reddit')
 
@@ -54,10 +55,12 @@ describe("Application", async function () {
 
     it("should verify that twitter and reddit are set up", async function () {
 
+      assert.equal((await store.apps(0)), tweedentityApp)
+
       assert.equal((await application.lastAppId()).toNumber(), 0)
 
-      assert.equal((await store.apps(1)).nickname, twitter)
-      assert.equal((await store.apps(2)).nickname, reddit)
+      assert.equal((await store.apps(1)), twitter)
+      assert.equal((await store.apps(2)), reddit)
       assert.equal((await store.lastAppId()).toNumber(), 2)
     });
 
@@ -72,7 +75,7 @@ describe("Application", async function () {
 
     it("should add an app", async function () {
       const appNickname = ethers.utils.formatBytes32String('facebook')
-      await expect(application.addApp(appNickname, true))
+      await expect(application.addApp(appNickname))
           .to.emit(application, 'AppAdded')
           .withArgs(1, appNickname);
     });
@@ -80,42 +83,11 @@ describe("Application", async function () {
     it('should throw adding another app with a string as nickname', async function () {
       const appNickname = ethers.utils.formatBytes32String('linkedin')
       try {
-        await application.addApp('linkedin', true)
+        await application.addApp('linkedin')
         assert.isTrue(false)
       } catch (e) {
         assert.isTrue(e.message.indexOf('invalid arrayify value') > -1)
       }
-    })
-
-  })
-
-  describe('#removeInactiveApps', async function () {
-
-    beforeEach(async function () {
-      await initNetworkAndDeploy();
-    });
-
-
-    it("should activate an app", async function () {
-      await expect(store.setAddressAndIdByAppId(1, user.address, 2223344))
-          .to.emit(store, 'AppActivated')
-          .withArgs(1);
-    });
-
-    it("should remove inactive app", async function () {
-      await store.setAddressAndIdByAppId(1, user.address, 2223344)
-      await expect(store.removeInactiveApps())
-          .to.emit(store, 'InactiveAppRemoved')
-          .withArgs(2)
-      assert.equal(await store.lastAppId(), 1)
-    });
-
-    it('should do nothing trying to remove active app', async function () {
-      await store.setAddressAndIdByAppId(1, user.address, 2223344)
-      await store.setAddressAndIdByAppId(2, user.address, 9383746)
-      assert.equal((await store.lastAppId()).toNumber(), 2)
-      await store.removeInactiveApps()
-      assert.equal((await store.lastAppId()).toNumber(), 2)
     })
 
   })

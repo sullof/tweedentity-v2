@@ -92,6 +92,19 @@ describe("IdentityManager", async function () {
       await initNetworkAndDeploy();
     });
 
+
+    it("should set up a tweedentity", async function () {
+
+      await expect(identity.connect(bob).setMyIdentity())
+          .to.emit(store, 'IdentitySet')
+          .withArgs(0, 1, bob.address);
+
+      await assertThrowsMessage(
+          identity.connect(bob).setMyIdentity(),
+          'Existing identity found for _appId/_address')
+
+    });
+
     it("should set up a twitter identity", async function () {
 
       timestamp = await getTimestamp()

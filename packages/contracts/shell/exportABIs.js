@@ -7,7 +7,8 @@ let names = [
   'Tweedentities',
   'IdentityManager',
   'IdentityClaimer',
-  'Twiptos'
+  'Twiptos',
+  'ZeroXNilRegistry'
 ]
 
 for (let name of names) {
@@ -16,5 +17,5 @@ for (let name of names) {
   ABIs[name] = json.abi
 }
 
-fs.writeFileSync(path.resolve(__dirname, '../../common/src/ABIs.json'), JSON.stringify(ABIs))
+fs.writeFileSync(path.resolve(__dirname, '../../common/config/ABIs.json'), JSON.stringify(ABIs, null, 2))
 

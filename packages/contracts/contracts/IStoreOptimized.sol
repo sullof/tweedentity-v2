@@ -42,6 +42,10 @@ interface IStoreOptimized {
         uint _id
     ) external;
 
+    function setNickname(
+        bytes32 _nickname
+    ) external;
+
     function updateAddressByAppId(
         uint _appId,
         address _oldAddress,

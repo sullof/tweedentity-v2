@@ -36,10 +36,10 @@ const utils = {
 
   ECDSASign(ethers, hexPrivateKey, types, values) {
     const abiEncoded = ethers.utils.defaultAbiCoder.encode(types, values)
-    const hash = ethers.utils.keccak256(abiEncoded);
-    const signingKey = new ethers.utils.SigningKey(hexPrivateKey);
-    const signedDigest = signingKey.signDigest(hash);
-    return ethers.utils.joinSignature(signedDigest);
+    const hash = ethers.utils.keccak256(abiEncoded)
+    const signingKey = new ethers.utils.SigningKey(hexPrivateKey)
+    const signedDigest = signingKey.signDigest(hash)
+    return ethers.utils.joinSignature(signedDigest)
   },
 
   integerStringToBytes32(ethers, integerStr) {
@@ -55,6 +55,34 @@ const utils = {
 
   async sleep(millis) {
     return new Promise(resolve => setTimeout(resolve, millis))
+  },
+
+  stringToBytes32(str) {
+    return ethers.utils.formatBytes32String(str)
+  },
+
+  bytes32ToString(bytes32) {
+    return ethers.utils.parseBytes32String(bytes32)
+  },
+
+  stringToBytes(str) {
+    let bytes = []
+    for (var i = 0; i < str.length; ++i) {
+      let code = str.charCodeAt(i)
+      bytes = bytes.concat([code])
+    }
+    let s = '0x'
+    bytes.forEach(function(byte) {
+      s += ('0' + (byte & 0xFF).toString(16)).slice(-2)
+    })
+    return s
+  },
+
+  bytesToString(hex) {
+    hex = hex.replace(/^0x/, '')
+    for (var bytes = [], c = 0; c < hex.length; c += 2)
+      bytes.push(parseInt(hex.substr(c, 2), 16))
+    return Buffer.from(bytes).toString()
   }
 
 }

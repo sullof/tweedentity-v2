@@ -17,6 +17,24 @@ import "./Signable.sol";
 
 contract IdentityManager is ClaimerCaller, StoreCaller, Signable {
 
+    uint private _currentTweedentityID;
+
+
+    function _getNextTweedentityID()
+    private view
+    returns (uint)
+    {
+        return _currentTweedentityID + 1;
+    }
+
+
+    function _incrementTokenTypeId()
+    private
+    {
+        _currentTweedentityID++;
+    }
+
+
     constructor(
         address _oracle,
         address _store,
@@ -27,6 +45,14 @@ contract IdentityManager is ClaimerCaller, StoreCaller, Signable {
     ClaimerCaller(_claimer)
     {
     }
+
+
+    function setMyIdentity() external
+    onlyIfStoreSet
+    {
+        store.setAddressAndIdByAppId(0, msg.sender, 0);
+    }
+
 
     function setIdentity(
         uint _appId,

@@ -5,14 +5,14 @@ const chains = {
   localhost: 98,
 
   // test
-  eth_ropsten: 0,
+  ropsten: 0,
   bsc_testnet: 2,
-  matic_testnet: 4,
+  mumbai: 4,
 
   // prod
-  eth_mainnet: 1,
+  ethereum: 1,
   bsc_mainnet: 3,
-  matic_mainnet: 5
+  matic: 5
 }
 
 module.exports = chains

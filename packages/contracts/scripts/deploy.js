@@ -6,19 +6,24 @@
 const hre = require("hardhat");
 const args = require('../arguments')
 
+const fs = require('fs-extra')
+const path = require('path')
+
 const {chains} = require('@tweedentity/common')
 
 async function deploy(ethers) {
+
+  const currentChain = chains[process.env.DEPLOY_NETWORK]
+
+  if (!currentChain) {
+    throw new Error('Unsupported chain')
+  }
 
   const [
     oracle,
     donee,
     uri
   ] = args;
-
-  if (!chains[process.env.DEPLOY_NETWORK]) {
-    throw new Error('Unsupported chain')
-  }
 
   const addr0 = '0x0000000000000000000000000000000000000000'
 
@@ -55,7 +60,7 @@ async function deploy(ethers) {
       oracle,
       donee,
       uri,
-      chains[process.env.DEPLOY_NETWORK],
+      currentChain[1],
       tweedentities.address
   );
   await twiptos.deployed();
@@ -75,20 +80,33 @@ async function deploy(ethers) {
     twiptos.address
   ]
 
-  Registry = await ethers.getContractFactory("ZeroXNilRegistry");
-  registry = await Registry.deploy(
+  const Registry = await ethers.getContractFactory("ZeroXNilRegistry");
+  const registry = await Registry.deploy(
       bytes32Names,
       addresses
   );
   await registry.deployed();
 
-  return {
+  let res = {
     Tweedentities: tweedentities.address,
     IdentityClaimer: claimer.address,
     IndentityManager: identityManager.address,
     Twiptos: twiptos.address,
     ZeroXNilRegistry: registry.address
   }
+
+  const deployedJson = require('@tweedentity/common/config/deployed.json')
+  let currentJson = deployedJson[currentChain[0]]
+  deployedJson[currentChain[0]] = res
+  deployedJson[currentChain[0]].when = (new Date).toISOString()
+  if (currentJson) {
+    let old = {}
+    old[currentChain[0]] = currentJson
+    deployedJson.previousVersions.push(old)
+  }
+  fs.writeFileSync(path.resolve(__dirname, '../../common/config/deployed.json'), JSON.stringify(deployedJson, null, 2))
+
+  return res
 
 }
 

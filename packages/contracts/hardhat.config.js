@@ -38,11 +38,15 @@ module.exports = {
     localhost: {
       url: "http://localhost:8545"
     },
-    eth_ropsten: {
+    goerli: {
+      url: `https://goerli.infura.io/v3/${env.infuraApiKey}`,
+      accounts: [env.privateKey]
+    },
+    ropsten: {
       url: `https://ropsten.infura.io/v3/${env.infuraApiKey}`,
       accounts: [env.privateKey]
     },
-    eth_mainnet: {
+    ethereum: {
       url: `https://mainnet.infura.io/v3/${env.infuraApiKey}`,
       accounts: [env.privateKey]
     },
@@ -58,13 +62,13 @@ module.exports = {
       gasPrice: 20000000000,
       accounts: [env.privateKey]
     },
-    matic_testnet: {
+    mumbai: {
       url: "https://rpc-mumbai.matic.today/",
       chainId: 80001,
       gasPrice: 20000000000,
       accounts: [env.privateKey]
     },
-    matic_mainnet: {
+    matic: {
       url: `https://rpc-mainnet.maticvigil.com/v1/${env.maticvigilKey}`,
       chainId: 137,
       gasPrice: 20000000000,

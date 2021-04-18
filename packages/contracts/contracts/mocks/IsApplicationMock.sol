@@ -21,15 +21,9 @@ contract IsApplicationMock is Application {
     constructor()
     {
         // twitter
-        addApp(
-            0x7477697474657200000000000000000000000000000000000000000000000000,
-            true
-        );
+        addApp(0x7477697474657200000000000000000000000000000000000000000000000000);
         // reddit
-        addApp(
-            0x7265646469740000000000000000000000000000000000000000000000000000,
-            false
-        );
+        addApp(0x7265646469740000000000000000000000000000000000000000000000000000);
     }
 
     function setAddressAndIdByAppId(
@@ -38,7 +32,6 @@ contract IsApplicationMock is Application {
         uint _id
     ) external
     {
-        activateApp(_appId);
         _idByAddress[_appId][_address] = _id;
         _addressById[_appId][_id] = _address;
         totalIdentities[_appId]++;

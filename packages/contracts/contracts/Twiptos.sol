@@ -102,7 +102,6 @@ contract Twiptos is ERC1155, StoreCaller, Signable {
     }
 
 
-
     function nextTokenId(
         uint _appId,
         uint _id
@@ -125,7 +124,8 @@ contract Twiptos is ERC1155, StoreCaller, Signable {
         uint _timestamp,
         bytes memory _signature,
         uint[] memory _donations,
-        address[] memory _donees
+        address[] memory _donees,
+        bytes memory _data
     ) external
     onlySignedByOracle(_appId, _tokenId, _timestamp, _signature)
     {
@@ -147,16 +147,33 @@ contract Twiptos is ERC1155, StoreCaller, Signable {
         );
 
         require(
-            _lastMintedById[_appId][id].timestamp == 0
-            || _lastMintedById[_appId][id].timestamp > block.timestamp - minTimeBetweenMintingEvents,
+            isNotTooEarly(_appId, id),
             "Too early for new minting"
         );
 
-        _mint(msg.sender, _tokenId, _supply, "");
-        _lastMintedById[_appId][id] = Minted(_lastMintedById[_appId][id].tokenId + 1,  block.timestamp);
+        _mint(msg.sender, _tokenId, _supply, _data);
+        _setLastMinted(_appId, id, 1);
         _donate(_tokenId, _supply, _donations, _donees);
     }
 
+
+    function _setLastMinted(
+        uint _appId,
+        uint _id,
+        uint _quantity
+    ) internal
+    {
+        _lastMintedById[_appId][_id] = Minted(_lastMintedById[_appId][_id].tokenId + _quantity, block.timestamp);
+    }
+
+
+    function isNotTooEarly(
+        uint _appId,
+        uint _id
+    ) public view
+    returns (bool) {
+        return _lastMintedById[_appId][_id].timestamp == 0 || _lastMintedById[_appId][_id].timestamp > block.timestamp - minTimeBetweenMintingEvents;
+    }
 
     function _donate(
         uint _tokenId,
@@ -198,7 +215,8 @@ contract Twiptos is ERC1155, StoreCaller, Signable {
         uint _timestamp,
         bytes memory _signature,
         uint[] memory _donations,
-        address[] memory _donees
+        address[] memory _donees,
+        bytes memory _data
     ) external
     onlyValidSignature(_timestamp)
     {
@@ -213,7 +231,7 @@ contract Twiptos is ERC1155, StoreCaller, Signable {
             "Invalid signature"
         );
 
-        uint id = store.idByAddress(_appId,msg.sender);
+        uint id = store.idByAddress(_appId, msg.sender);
 
         require(
             id != 0,
@@ -238,15 +256,13 @@ contract Twiptos is ERC1155, StoreCaller, Signable {
                 "Invalid token ID"
             );
         }
-
         require(
-            _lastMintedById[_appId][id].timestamp == 0
-            || _lastMintedById[_appId][id].timestamp > block.timestamp - minTimeBetweenMintingEvents,
+            isNotTooEarly(_appId, id),
             "Too early for new minting"
         );
 
-        _mintBatch(msg.sender, _tokenIds, _supplies, "");
-        _lastMintedById[_appId][id] = Minted(_lastMintedById[_appId][id].tokenId + _tokenIds.length,  block.timestamp);
+        _mintBatch(msg.sender, _tokenIds, _supplies, _data);
+        _setLastMinted(_appId, id, _tokenIds.length);
         _donateBatch(_tokenIds, _supplies, _donations, _donees);
 
     }

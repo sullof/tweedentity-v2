@@ -94,7 +94,6 @@ contract IdentityClaimer is Ownable, Managed, StoreCaller {
             }
             if (id != 0) {
                 if (_claimById[appId][id].when > block.timestamp - probationTime - afterProbationTime) {
-
                     claims[j] = FullClaim(_claimById[appId][id].claimer, appId, id, _claimById[appId][id].when);
                     j++;
                 }
@@ -114,6 +113,10 @@ contract IdentityClaimer is Ownable, Managed, StoreCaller {
     onlyIfStoreSet
     onlyManager
     {
+        require(
+            _appId > 0,
+            "Tweedentity id can't be claimed"
+        );
         require(
             _claimer != address(0),
             "_claimer cannot be 0x0"

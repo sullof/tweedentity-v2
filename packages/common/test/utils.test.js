@@ -39,4 +39,47 @@ describe('#utils', function () {
 
   })
 
+  describe('stringToBytes32', async function () {
+
+    it('should convert a string to a bytes32', async function () {
+
+      let twitter = '0x7477697474657200000000000000000000000000000000000000000000000000'
+
+      assert.equal(utils.stringToBytes32('twitter'), twitter)
+    })
+
+  })
+
+  describe('bytes32ToString', async function () {
+
+    it('should convert an hexstring to a string', async function () {
+
+      assert.equal(utils.bytes32ToString('0x7477697474657200000000000000000000000000000000000000000000000000'), 'twitter')
+    })
+
+  })
+
+  describe.only('stringToBytes', async function () {
+
+
+    let description = 'Artist with a tendency to build disastrous scupltures'
+
+    it('should convert a string to a bytes', async function () {
+
+      assert.equal(
+          utils.stringToBytes(description),
+          '0x417274697374207769746820612074656e64656e637920746f206275696c6420646973617374726f757320736375706c7475726573'
+      )
+
+    })
+
+    it('should convert an hexstring to a string', async function () {
+
+      assert.equal(
+          utils.bytesToString('0x417274697374207769746820612074656e64656e637920746f206275696c6420646973617374726f757320736375706c7475726573'), description)
+
+    })
+
+  })
+
 })

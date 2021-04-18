@@ -29,24 +29,126 @@ contract Tweedentities is Application, Managed {
         address indexed _address
     );
 
+    event NicknameSet(
+        uint indexed _id,
+        bytes32 nickname
+    );
+
+
+    event DataChanged(
+        uint indexed _id,
+        bytes32 indexed key,
+        bytes value
+    );
+
     mapping(uint => mapping(uint => address)) private _addressById;
     mapping(uint => mapping(address => uint)) private _idByAddress;
     mapping(uint => uint) public totalIdentities;
+
+    uint public lastTweedentityId;
+
+    bool public nicknamesActive;
+    mapping(uint => bytes32) public nicknamesById;
+    mapping(bytes32 => bool) public takenNicknames;
+
+    bytes32[] public supportedExtras;
+    mapping(uint => mapping(bytes32 => bytes)) public extras;
+
 
 
     constructor(address _manager)
     Managed(_manager)
     {
         // twitter
-        addApp(
-            0x7477697474657200000000000000000000000000000000000000000000000000,
-            true
-        );
+        addApp(0x7477697474657200000000000000000000000000000000000000000000000000);
         // reddit
-        addApp(
-            0x7265646469740000000000000000000000000000000000000000000000000000,
-            false
+        addApp(0x7265646469740000000000000000000000000000000000000000000000000000);
+    }
+
+
+
+    function activateKey(
+        bytes32 _key
+    ) external
+    onlyOwner
+    {
+        supportedExtras.push(_key);
+    }
+
+
+    function getExtras(
+        address _address,
+        bytes32 _key
+    ) public view
+    returns (bytes memory _value)
+    {
+        uint id = _idByAddress[0][_address];
+        require(
+            id != 0,
+            "Account not found"
         );
+        return extras[id][_key];
+    }
+
+
+    function setExtras(
+        bytes32 _key,
+        bytes calldata _value
+    ) external
+    {
+        bool supported;
+        for (uint i = 0; i < supportedExtras.length; i++) {
+            if (supportedExtras[i] == _key) {
+                supported = true;
+                break;
+            }
+        }
+        require(
+            supported,
+            "Key not supported"
+        );
+        uint id = _idByAddress[0][msg.sender];
+        require(
+            id != 0,
+            "Account not found"
+        );
+        extras[id][_key] = _value;
+        emit DataChanged(id, _key, _value);
+    }
+
+
+    function activateNicknames() external
+    onlyOwner
+    {
+        nicknamesActive = true;
+    }
+
+
+    function setNickname(
+        bytes32 _nickname
+    ) external
+    {
+        require(
+            nicknamesActive,
+            "Nicknames not active"
+        );
+        uint id = _idByAddress[0][msg.sender];
+        require(
+            id != 0,
+            "Account not found"
+        );
+        // nicknames are immutable
+        require(
+            !takenNicknames[_nickname],
+            "Nickname taken"
+        );
+        require(
+            nicknamesById[id] == 0,
+            "Nicknames are immutable"
+        );
+        nicknamesById[id] = _nickname;
+        takenNicknames[_nickname] = true;
+        NicknameSet(id, _nickname);
     }
 
 
@@ -58,7 +160,7 @@ contract Tweedentities is Application, Managed {
     onlyManager
     {
         require(
-            apps[_appId].nickname > 0,
+            apps[_appId] > 0,
             "Unsupported app"
         );
         require(
@@ -69,12 +171,15 @@ contract Tweedentities is Application, Managed {
             _idByAddress[_appId][_address] == 0,
             "Existing identity found for _appId/_address"
         );
+        if (_appId == 0) {
+            lastTweedentityId++;
+            _id = lastTweedentityId;
+        }
         require(
             _addressById[_appId][_id] == address(0),
             "Existing identity found for _appId/_id"
         );
 
-        activateApp(_appId);
         _idByAddress[_appId][_address] = _id;
         _addressById[_appId][_id] = _address;
         totalIdentities[_appId]++;
@@ -120,7 +225,7 @@ contract Tweedentities is Application, Managed {
     returns (uint[] memory)
     {
         uint[] memory ids = new uint[](lastAppId);
-        for (uint i = 1; i <= lastAppId; i++) {
+        for (uint i = 0; i <= lastAppId; i++) {
             if (_idByAddress[i][_address] != 0) {
                 ids[i - 1] = _idByAddress[i][_address];
             }

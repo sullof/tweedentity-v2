@@ -18,41 +18,18 @@ contract Application is Ownable {
         bytes32 indexed nickname
     );
 
-    event InactiveAppRemoved(
-        uint indexed id
-    );
-
-    event AppActivated(
-        uint indexed id
-    );
-
-    struct App {
-        bytes32 nickname;
-        bool hasPureNumberId;
-    }
-
     uint constant public maxNumberOfApps = 100;
 
     uint public lastAppId;
-    mapping(uint => App) public apps;
+    mapping(uint => bytes32) public apps;
 
-    // set by the extender
-    mapping(uint => bool) private _activeApps;
-
-    function activateApp(
-        uint _id
-    ) internal
-    {
-
-        if (!_activeApps[_id]) {
-            _activeApps[_id] = true;
-            emit AppActivated(_id);
-        }
+    constructor() {
+        // tweedentity
+        apps[0] = 0x7477656564656e74697479000000000000000000000000000000000000000000;
     }
 
     function addApp(
-        bytes32 _nickname,
-        bool _pureNumber
+        bytes32 _nickname
     ) public
     onlyOwner
     {
@@ -66,22 +43,8 @@ contract Application is Ownable {
         );
 
         lastAppId++;
-        apps[lastAppId] = App(_nickname, _pureNumber);
+        apps[lastAppId] = _nickname;
         emit AppAdded(lastAppId, _nickname);
-    }
-
-    function removeInactiveApps() public
-    onlyOwner
-    {
-        for (uint i = lastAppId; i > 0; i--) {
-            if (_activeApps[i]) {
-                break;
-            }
-            lastAppId--;
-            delete apps[i];
-            emit InactiveAppRemoved(i);
-        }
-
     }
 
 }
