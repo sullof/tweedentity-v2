@@ -9,6 +9,7 @@ const detectEthereumProvider = require('@metamask/detect-provider')
 
 const chains = require('../../config/chains')
 
+// eslint-disable-next-line node/no-missing-require
 const ethers = require('ethers')
 
 // const { Web3ReactProvider } = require('@web3-react/core')

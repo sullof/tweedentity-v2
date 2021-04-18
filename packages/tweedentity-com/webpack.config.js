@@ -26,7 +26,8 @@ var config = {
     react: 'React',
     'react-bootstrap': 'ReactBootstrap',
     'react-dom': 'ReactDOM',
-    'react-router-dom': 'ReactRouterDOM'
+    'react-router-dom': 'ReactRouterDOM',
+    ethers: 'ethers'
   }
 };
 
