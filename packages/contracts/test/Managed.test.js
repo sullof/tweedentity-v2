@@ -1,6 +1,6 @@
 const {expect, assert} = require("chai");
-const {assertThrowsMessage} = require('./helpers')
-const {utils} = require('@tweedentity/common')
+const {assertThrowsMessage} = require('../src/helpers')
+const {utils} = require('../src')
 
 describe("Managed", async function () {
 

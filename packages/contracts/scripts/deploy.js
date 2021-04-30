@@ -5,13 +5,15 @@
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
 const args = require('../arguments')
-
 const fs = require('fs-extra')
 const path = require('path')
 
-const {chains} = require('@tweedentity/common')
+const {chains, utils} = require('../src')
+const {getSignature} = require('../src/helpers')
 
 async function deploy(ethers) {
+
+  const devMode = process.env.DEPLOY_NETWORK === 'localhost'
 
   const currentChain = chains[process.env.DEPLOY_NETWORK]
 
@@ -19,7 +21,7 @@ async function deploy(ethers) {
     throw new Error('Unsupported chain')
   }
 
-  const [
+  let [
     oracle,
     donee,
     uri
@@ -27,10 +29,15 @@ async function deploy(ethers) {
 
   const addr0 = '0x0000000000000000000000000000000000000000'
 
+  if (devMode) {
+    oracle = '0x70997970c51812dc3a010c7d01b50e0d17dc79c8'
+  }
+
   // store
   const Tweedentities = await ethers.getContractFactory("Tweedentities");
   const tweedentities = await Tweedentities.deploy(
-      addr0
+      addr0,
+      currentChain[1]
   );
   await tweedentities.deployed();
 
@@ -54,30 +61,25 @@ async function deploy(ethers) {
   await tweedentities.addManager(identityManager.address);
   await claimer.addManager(identityManager.address);
 
-  // token
-  const Twiptos = await ethers.getContractFactory("Twiptos");
-  const twiptos = await Twiptos.deploy(
-      oracle,
-      donee,
-      uri,
-      currentChain[1],
-      tweedentities.address
-  );
-  await twiptos.deployed();
+  if (devMode) {
+    const timestamp = (await ethers.provider.getBlock()).timestamp - 1
+    const tid = 5876772
+    const bob = (await ethers.getSigners())[3]
+    const signature = await getSignature(ethers, identityManager, bob.address, 1, tid, timestamp)
+    await identityManager.connect(bob).setIdentity(1, tid, timestamp, signature)
+  }
 
   let names = [
     'Tweedentities',
     'IdentityManager',
-    'IdentityClaimer',
-    'Twiptos'
+    'IdentityClaimer'
   ]
   let bytes32Names = names.map(e => ethers.utils.formatBytes32String(e))
 
   let addresses = [
     tweedentities.address,
     identityManager.address,
-    claimer.address,
-    twiptos.address
+    claimer.address
   ]
 
   const Registry = await ethers.getContractFactory("ZeroXNilRegistry");
@@ -87,24 +89,41 @@ async function deploy(ethers) {
   );
   await registry.deployed();
 
+  //
+
+  // token
+  const Twiptos = await ethers.getContractFactory("Twiptos");
+  const twiptos = await Twiptos.deploy(
+      oracle,
+      donee,
+      uri,
+      tweedentities.address
+  );
+  await twiptos.deployed();
+
+  registry.setData(ethers.utils.formatBytes32String('Twiptos'), twiptos.address)
+
   let res = {
-    Tweedentities: tweedentities.address,
-    IdentityClaimer: claimer.address,
-    IndentityManager: identityManager.address,
-    Twiptos: twiptos.address,
+    // Tweedentities: tweedentities.address,
+    // IdentityClaimer: claimer.address,
+    // IndentityManager: identityManager.address,
+    // Twiptos: twiptos.address,
     ZeroXNilRegistry: registry.address
   }
 
-  const deployedJson = require('@tweedentity/common/config/deployed.json')
-  let currentJson = deployedJson[currentChain[0]]
-  deployedJson[currentChain[0]] = res
-  deployedJson[currentChain[0]].when = (new Date).toISOString()
+  const deployedJson = require('../config/deployed.json')
+  let currentJson = deployedJson.ZeroXNilRegistry[currentChain[0]]
+  deployedJson.ZeroXNilRegistry[currentChain[0]] = {
+    address: registry.address,
+    when: (new Date).toISOString()
+  }
   if (currentJson) {
     let old = {}
     old[currentChain[0]] = currentJson
-    deployedJson.previousVersions.push(old)
+    deployedJson.ZeroXNilRegistry.previousVersions.push(old)
   }
-  fs.writeFileSync(path.resolve(__dirname, '../../common/config/deployed.json'), JSON.stringify(deployedJson, null, 2))
+
+  fs.writeFileSync(path.resolve(__dirname, '../config/deployed.json'), JSON.stringify(deployedJson, null, 2))
 
   return res
 

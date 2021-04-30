@@ -1,6 +1,6 @@
 const {expect, assert} = require("chai");
-const {assertThrowsMessage} = require('./helpers')
-const {utils} = require('@tweedentity/common')
+const {assertThrowsMessage, getSignature, getSignature3} = require('../src/helpers')
+const {utils} = require('../src')
 
 describe("Twiptos", async function () {
 
@@ -44,18 +44,10 @@ describe("Twiptos", async function () {
     chainId = await tweedentity.getChainId()
   })
 
-  function getSignature(address, appId, id, timestamp) {
-    return utils.ECDSASign(ethers, '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d', ['uint256', 'address', 'uint256', 'uint256', 'uint256'], [chainId, address, appId, id, timestamp])
-  }
-
-  function getSignatures(address, appId, ids, timestamp) {
-    return utils.ECDSASign(ethers, '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d', ['uint256', 'address', 'uint256', 'uint256[]', 'uint256'], [chainId, address, appId, ids, timestamp])
-  }
-
   async function initNetworkAndDeploy() {
     // store
     Tweedentities = await ethers.getContractFactory("Tweedentities");
-    store = await Tweedentities.deploy(addr0);
+    store = await Tweedentities.deploy(addr0, 0);
     await store.deployed();
     // //claimer
     Claimer = await ethers.getContractFactory("IdentityClaimer");
@@ -74,7 +66,6 @@ describe("Twiptos", async function () {
         oracle.address,
         org.address,
         "https://store.token.com/metadata/{id}.json",
-        99,
         store.address
     );
     await tweedentity.deployed();
@@ -94,13 +85,13 @@ describe("Twiptos", async function () {
     it("should mint a personal tokens without donations", async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       let tokenId = await tweedentity.nextTokenId(1, tid)
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tokenId, timestamp)
+      signature = getSignature(ethers, identity,bob.address, 1, tokenId, timestamp)
 
       await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [], [], 0))
           .to.emit(tweedentity, 'TransferSingle')
@@ -111,15 +102,60 @@ describe("Twiptos", async function () {
     it("should throw trying to mint again too early", async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity,bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       let tokenId = await tweedentity.nextTokenId(1, tid)
+
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tokenId, timestamp)
+      signature = getSignature(ethers, identity,bob.address, 1, tokenId, timestamp)
 
       await tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [], [], 0)
+
+      tokenId = await tweedentity.nextTokenId(1, tid)
+      timestamp = await getTimestamp()
+      signature = getSignature(ethers, identity,bob.address, 1, tokenId, timestamp)
+
+      await assertThrowsMessage(
+          tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [], [], 0),
+          'Too early for new minting');
+
+    });
+
+    it("should mint a second token after the required time", async function () {
+
+      timestamp = await getTimestamp()
+      signature = getSignature(ethers, identity,bob.address, 1, tid, timestamp)
+
+      await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
+
+      await tweedentity.updateMinTimeBetweenMintingEvents(1)
+
+      let tokenId = await tweedentity.nextTokenId(1, tid)
+
+      timestamp = await getTimestamp()
+      signature = getSignature(ethers, identity,bob.address, 1, tokenId, timestamp)
+
+      await tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [], [], 0)
+
+      await utils.sleep(1000)
+
+      // this is to block a new block in hardhat blockchain simulation
+      await tweedentity.updateMinTimeBetweenMintingEvents(1)
+
+      await utils.sleep(1000)
+
+      // this is to block a new block in hardhat blockchain simulation
+      await tweedentity.updateMinTimeBetweenMintingEvents(1)
+
+
+      assert.equal((await tweedentity.secondsToWaitBeforeNextMinting(1, tid)).toNumber(), 0)
+      assert.isTrue((await tweedentity.isNotTooEarly(1, tid)))
+
+      tokenId = await tweedentity.nextTokenId(1, tid)
+      timestamp = await getTimestamp()
+      signature = getSignature(ethers, identity,bob.address, 1, tokenId, timestamp)
 
       await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [], [], 0))
           .to.emit(tweedentity, 'TransferSingle')
@@ -130,13 +166,13 @@ describe("Twiptos", async function () {
     it("should mint a personal tokens with a donation to the org", async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity,bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       let tokenId = await tweedentity.nextTokenId(1, tid)
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tokenId, timestamp)
+      signature = getSignature(ethers, identity,bob.address, 1, tokenId, timestamp)
 
       await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [3], [addr0], 0))
           .to.emit(tweedentity, 'TransferSingle')
@@ -149,13 +185,13 @@ describe("Twiptos", async function () {
     it("should mint a personal tokens with multiple donations", async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity,bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       let tokenId = await tweedentity.nextTokenId(1, tid)
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tokenId, timestamp)
+      signature = getSignature(ethers, identity,bob.address, 1, tokenId, timestamp)
 
       await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [5, 4, 4], [wikileaks.address, assange.address, addr0], 0))
           .to.emit(tweedentity, 'TransferSingle')
@@ -171,13 +207,13 @@ describe("Twiptos", async function () {
     it("should mint a personal tokens with other donations", async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity,bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       let tokenId = await tweedentity.nextTokenId(1, tid)
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tokenId, timestamp)
+      signature = getSignature(ethers, identity,bob.address, 1, tokenId, timestamp)
 
       await expect(tweedentity.connect(bob).create(1, tokenId, 100, timestamp, signature, [4, 3], [wikileaks.address, assange.address], 0))
           .to.emit(tweedentity, 'TransferSingle')
@@ -201,7 +237,7 @@ describe("Twiptos", async function () {
     it("should mint three personal tokens without donations", async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity,bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
@@ -212,7 +248,7 @@ describe("Twiptos", async function () {
         tokenId.add(2)
       ]
       timestamp = await getTimestamp()
-      signature = getSignatures(bob.address, 1, tokenIds, timestamp)
+      signature = getSignature3(ethers, tweedentity, bob.address, 1, tokenIds, timestamp)
       let supplies = [100, 50, 30]
       let donations = [0, 0, 0]
       let donees = []
@@ -230,12 +266,17 @@ describe("Twiptos", async function () {
           .to.emit(tweedentity, 'TransferBatch')
           .withArgs(bob.address, addr0, bob.address, tokenIds, supplies);
 
+      let minTimeBetweenMintingEvents = (await tweedentity.minTimeBetweenMintingEvents()).toNumber()
+      let waitingTime = (await tweedentity.secondsToWaitBeforeNextMinting(1, tid)).toNumber()
+
+      assert.isTrue(waitingTime <= 3 * minTimeBetweenMintingEvents && waitingTime > (3 * minTimeBetweenMintingEvents) - 10)
+
     });
 
     it("should mint three personal tokens with donations to three orgs", async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity,bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
@@ -246,7 +287,7 @@ describe("Twiptos", async function () {
         tokenId.add(2)
       ]
       timestamp = await getTimestamp()
-      signature = getSignatures(bob.address, 1, tokenIds, timestamp)
+      signature = getSignature3(ethers, tweedentity, bob.address, 1, tokenIds, timestamp)
       let supplies = [5, 50, 500]
       let donations = [1, 5, 13]
       let donees = [

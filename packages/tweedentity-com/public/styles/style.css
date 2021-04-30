@@ -118,13 +118,15 @@ span.danger {
 div.account {
     padding: 42px 0 4px;
     text-align: center;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
 }
 
 div.account .appIcon {
     font-size: 32px;
     position: absolute;
     top: 10px;
-    left: 33px;
+    left: 10px;
 }
 
 div.account .settingsIcon {
@@ -206,4 +208,14 @@ div.thinline > div {
 .footerContainer {
     padding: 12px;
     font-size: 80%;
+}
+
+/*.btn.btn-primary {*/
+/*    background-color: #17AFD0 !important;*/
+/*    border-color: #00b0d0;*/
+/*    color: white;*/
+/*}*/
+
+.card-body {
+    padding: 8px;
 }

@@ -9,7 +9,7 @@ body {
     padding: 0;
     color: #0B1122;
     font-family: 'Bree Serif';
-    /*background: url(../img/background2.png) repeat-y;*/
+    background: url(../images/background.png) repeat-y !important;
     /*height: 100%;*/
 }
 
@@ -628,3 +628,6 @@ a {
     /*background-size: cover;*/
 }
 
+button.btn-close {
+    visibility: hidden;
+}

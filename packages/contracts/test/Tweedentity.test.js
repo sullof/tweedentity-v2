@@ -1,6 +1,6 @@
 const {expect, assert} = require("chai");
-const {assertThrowsMessage} = require('./helpers')
-const {utils} = require('@tweedentity/common')
+const {assertThrowsMessage} = require('../src/helpers')
+const {utils} = require('../src')
 const ethUtils = require('ethereumjs-util')
 
 describe("Tweedentities", async function () {
@@ -19,6 +19,7 @@ describe("Tweedentities", async function () {
 
   let twitter = utils.stringToBytes32('twitter')
   let reddit = utils.stringToBytes32('reddit')
+  let instagram = utils.stringToBytes32('instagram')
 
   let tid = 223344
   let rid = 'a8sh3e'
@@ -40,7 +41,7 @@ describe("Tweedentities", async function () {
 
   async function initNetworkAndDeploy() {
     Tweedentities = await ethers.getContractFactory("Tweedentities");
-    store = await Tweedentities.deploy(manager.address);
+    store = await Tweedentities.deploy(manager.address, 0);
     await store.deployed();
   }
 
@@ -59,7 +60,8 @@ describe("Tweedentities", async function () {
     it("should verify that twitter and reddit are set up", async function () {
       assert.equal((await store.apps(1)), twitter)
       assert.equal((await store.apps(2)), reddit)
-      assert.equal((await store.lastAppId()).toNumber(), 2)
+      assert.equal((await store.apps(3)), instagram)
+      assert.equal((await store.lastAppId()).toNumber(), 3)
     });
 
   })
@@ -242,7 +244,7 @@ describe("Tweedentities", async function () {
 
 
       await assertThrowsMessage(
-          store.connect(manager).setAddressAndIdByAppId(3, user.address, tid),
+          store.connect(manager).setAddressAndIdByAppId(4, user.address, tid),
           'Unsupported app')
 
     });

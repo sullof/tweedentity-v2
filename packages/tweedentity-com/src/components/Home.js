@@ -1,6 +1,6 @@
 
 // eslint-disable-next-line node/no-missing-require
-const {Container, Row, Col, Badge} = require('react-bootstrap')
+const {Container, Row, Col, Button, Badge} = require('react-bootstrap')
 
 
 // eslint-disable-next-line no-undef
@@ -10,10 +10,11 @@ module.exports = class Home extends Base {
 
 
   goToApp() {
-    location.href = `${location.protocol}//app.${location.host}/#/connecting`
+    location.href = `${location.protocol}//app.${location.host}`
   }
 
   render() {
+
     return (
       <Container style={{marginTop: 32}}>
 
@@ -27,7 +28,6 @@ module.exports = class Home extends Base {
           </Row>
 
         <Row><Col><div className="thinline"><div></div></div></Col></Row>
-
 
           <Row>
             <Col md={3}>
@@ -50,14 +50,14 @@ module.exports = class Home extends Base {
                 to confirm your <i>tweedentity</i> signing a verification code with your wallet.</p>
             </Col>
             <Col md={3}>
-              <h2>Tweedentity V2 is coming soon. Do not use the V1 because you will waste gas.</h2>
+              {/*<h2>Tweedentity V2 is coming soon. Do not use the V1 because you will waste gas.</h2>*/}
 
 
-              {/*<p className="centered trynow">*/}
-              {/*  <Button*/}
-              {/*          onClick={ this.goToApp}*/}
-              {/*  >Set your <i>tweedentity</i> now!</Button>*/}
-              {/*</p>*/}
+              <p className="centered trynow">
+                <Button
+                        onClick={ this.goToApp}
+                >Set your <i>tweedentity</i> now!</Button>
+              </p>
             </Col>
           </Row>
 

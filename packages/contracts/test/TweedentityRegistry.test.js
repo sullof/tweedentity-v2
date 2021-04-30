@@ -1,6 +1,6 @@
 const {expect, assert} = require("chai");
-const {assertThrowsMessage} = require('./helpers')
-const {utils} = require('@tweedentity/common')
+const {assertThrowsMessage} = require('../src/helpers')
+const {utils} = require('../src')
 
 describe("ZeroXNilRegistry", async function () {
 
@@ -39,7 +39,7 @@ describe("ZeroXNilRegistry", async function () {
   async function initNetworkAndDeploy() {
     // store
     Tweedentities = await ethers.getContractFactory("Tweedentities");
-    store = await Tweedentities.deploy(addr0);
+    store = await Tweedentities.deploy(addr0, 0);
     await store.deployed();
     //claimer
     Claimer = await ethers.getContractFactory("IdentityClaimer");
@@ -58,7 +58,6 @@ describe("ZeroXNilRegistry", async function () {
         oracle.address,
         org.address,
         "https://store.token.com/metadata/{id}.json",
-        99,
         store.address
     );
     await tweedentity.deployed();

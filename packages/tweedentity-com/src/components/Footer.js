@@ -1,4 +1,7 @@
 // eslint-disable-next-line node/no-missing-require
+const {Link} = require('react-router-dom')
+
+// eslint-disable-next-line node/no-missing-require
 const {Container, Row, Col} = require('react-bootstrap')
 const Base = require('./Base')
 
@@ -27,11 +30,8 @@ class Footer extends Base {
                 {
                   // this.appState().www ? null :
                     <span>
-                    <span className="item" onClick={()=>{
-                      this.historyPush('terms')
-                      window.scroll(0,0)
-                    }}>
-                      <i className="fab fa-dot-circle-o"></i> <span className="roboto300">Terms of use and Privacy</span>
+                    <span className="item">
+                      <i className="fab fa-dot-circle-o"></i> <span className="roboto300"><Link to="/terms">Terms of use and Privacy</Link></span>
                 </span>
                       {/*<span className="item" onClick={()=>{*/}
                       {/*this.setGlobalState({}, {*/}

@@ -1,5 +1,5 @@
 const {expect, assert} = require("chai");
-const {assertThrowsMessage} = require('./helpers')
+const {assertThrowsMessage} = require('../src/helpers')
 
 describe("Signable", async function () {
 

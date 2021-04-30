@@ -1,22 +1,23 @@
 const chains = {
 
   // dev
-  localhost: [1337, 99],
+  // [chainId, progressiveChainId, active]
+  localhost: [1337, 0, true],
 
   // test
-  ropsten: [3, 0],
-  goerli: [5, 1],
-  bsc_testnet: [97, 2],
-  mumbai: [80001, 4],
+  ropsten: [3, 0, false],
+  goerli: [5, 0, false],
+  bsc_testnet: [97, 0, false],
+  mumbai: [80001, 0, false],
 
   // prod
-  ethereum: [1, 4],
-  bsc_mainnet: [56, 5],
-  matic: [137, 6],
+  matic: [137, 1, false],
+  bsc_mainnet: [56, 2, false],
+  ethereum: [1, 3, false],
 
   // future
-  avalance: [43114, 7],
-  fuji: [43113, 8]
+  avalance: [43114, 7, false],
+  fuji: [43113, 8, false]
 }
 
 module.exports = chains

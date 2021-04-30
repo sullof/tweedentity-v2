@@ -6,7 +6,7 @@ docker rm tweedentity-app-debug
 docker stop tweedentity-app
 docker rm tweedentity-app
 
-source ./.default.env && docker run -it \
+source ../../.env.default && docker run -it \
   --name tweedentity-app-debug \
   --link tweedentity-redis:redis \
   -p 6969 \

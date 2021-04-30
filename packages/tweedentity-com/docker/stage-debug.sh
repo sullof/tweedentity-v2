@@ -6,7 +6,7 @@ docker rm qabra-app-debug
 docker stop qabra-app
 docker rm qabra-app
 
-source ./.default.env && docker run -it \
+source ../../.env.default && docker run -it \
   --name qabra-app-debug \
   --link tweedentity-redis:redis \
   -p 6969 \

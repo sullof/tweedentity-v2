@@ -17,8 +17,7 @@
     "check-unused": "bin/check-unused.sh"
   },
   "license": "MIT",
-  "dependencies": {
-  },
+  "dependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tweedentity/tweedentity-v2.git"
@@ -29,5 +28,7 @@
   },
   "engines": {
     "node": ">=10.0.0"
+  },
+  "devDependencies": {
   }
 }

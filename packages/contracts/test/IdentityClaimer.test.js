@@ -1,6 +1,6 @@
 const {expect, assert} = require("chai");
-const {assertThrowsMessage} = require('./helpers')
-const {utils} = require('@tweedentity/common')
+const {assertThrowsMessage} = require('../src/helpers')
+const {utils} = require('../src')
 
 describe("IdentityClaimer", async function () {
 
@@ -40,7 +40,7 @@ describe("IdentityClaimer", async function () {
 
   async function initNetworkAndDeploy() {
     Tweedentities = await ethers.getContractFactory("Tweedentities");
-    store = await Tweedentities.deploy(manager.address);
+    store = await Tweedentities.deploy(manager.address, 0);
     await store.deployed();
     IdentityClaimer = await ethers.getContractFactory("IdentityClaimer");
     claimer = await IdentityClaimer.deploy(manager.address, store.address);

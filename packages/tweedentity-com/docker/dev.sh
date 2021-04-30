@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source ./.default.env && docker run -it --rm \
+source ../../.env.default && docker run -it --rm \
   --name tweedentity-app-dev \
   -p 6969 \
   -v $PWD:/usr/src/app \

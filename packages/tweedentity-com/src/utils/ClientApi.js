@@ -10,7 +10,7 @@ class ClientApi {
     query = {}
     ) {
 
-    const res = await superagent[method](`${window.location.origin}/api/${api}`)
+    const res = await superagent[method](`${window.location.origin}/api/v1/${api}`)
       .set('Accept', 'application/json')
       .set('Access-Token', accessToken)
       .query(query)

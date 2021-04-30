@@ -1,7 +1,7 @@
 const assert = require('assert')
 
 const _ = require('lodash')
-const Client = require('../Client')
+const Client = require('../src/Client')
 const Web3 = require('web3')
 const config = require('./helpers/config')
 const web3jsMock = require('./mocks/webjs-mock')
@@ -163,7 +163,7 @@ describe('Client', function () {
 
   })
 
-  describe.only('Authentication', function () {
+  describe('Authentication', function () {
 
     before(function () {
       web3js = new Web3(new Web3.providers.HttpProvider('https://ropsten.infura.io'))

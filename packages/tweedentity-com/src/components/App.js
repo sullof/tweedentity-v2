@@ -5,9 +5,8 @@ const {BrowserRouter, Route} = require('react-router-dom')
 // eslint-disable-next-line node/no-missing-require
 const {Modal, Button} = require('react-bootstrap')
 
-const detectEthereumProvider = require('@metamask/detect-provider')
-
 const chains = require('../../config/chains')
+// const detectEthereumProvider = require('@metamask/detect-provider')
 
 // eslint-disable-next-line node/no-missing-require
 const ethers = require('ethers')
@@ -19,15 +18,18 @@ const ethers = require('ethers')
 const {Contract} = require('@ethersproject/contracts')
 // const WalletConnectProvider = require('@walletconnect/web3-provider')
 
-
-const config = require('../config')
+const Db = require('../utils/Db')
+const config = require('../../config')
 const Footer = require('./Footer')
+const Terms = require('./Terms')
 
 const ls = require('local-storage')
 
 const Common = require('./Common')
 const Menu = require('./Menu')
 const Home = require('./Home')
+const Welcome = require('./Welcome')
+const GetUsername = require('./GetUsername')
 const Info = require('./Info')
 
 module.exports = class App extends Common {
@@ -35,13 +37,21 @@ module.exports = class App extends Common {
   constructor(props) {
     super(props)
 
+    this.db = new Db(data => {
+      this.setState({
+        data
+      })
+    })
+
     this.state = {
       Store: {
         content: {},
         editing: {},
         temp: {},
         menuVisibility: false,
-        config
+        config,
+        loading: false,
+        ready: false
       }
     }
 
@@ -52,7 +62,9 @@ module.exports = class App extends Common {
       'getContract',
       'connect',
       'showModal',
-      'watchAccounts0'
+      'callMethod',
+      'setWallet',
+      'api'
     ])
   }
 
@@ -65,80 +77,51 @@ module.exports = class App extends Common {
   }
 
   async componentDidMount() {
-    // await this.connect()
-  }
-
-  async watchAccounts0() {
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum)
-      const chainId = (await provider.getNetwork()).chainId
-      if (chainId !== this.state.Store.chainId) {
-        window.location.reload()
-      }
-      setTimeout(await this.watchAccounts0, 1000)
-    } catch(e) {
+    if (/^app\./.test(location.host)) {
+      await this.connect(true)
     }
   }
 
-  async connect() {
-
-    const provider = await detectEthereumProvider()
-    if (provider) {
-
+  async setWallet() {
+    try {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const signer = provider.getSigner()
       const chainId = (await provider.getNetwork()).chainId
-      const signedInAddress = await signer.getAddress()
-
-      provider.on('accountsChanged', accounts => {
-        this.setStore({
-          accounts
-        })
-      })
-
-      provider.on('chainChanged', chainId => {
-        console.info('ChainId changed', chainId)
-        chainId = parseInt(chainId)
-        this.setStore({
-          chainId,
-          connectedNetwork: this.getNetwork(chainId)
-        })
-        // this.getContract(config, chainId, this.state.Store.web3Provider)
-      })
-
-      provider.on('connect', info => {
-        this.setStore({
-          chainId: parseInt(info.chainId)
-        })
-      })
-
-      provider.on('disconnect', error => {
-        this.setStore({
-          disconnectError: {
-            code: error.code,
-            message: error.message
-          }
-        })
-      })
-
+      const wallet = await signer.getAddress()
       this.setStore({
         provider,
         signer,
-        signedInAddress,
+        wallet,
         chainId,
         connectedNetwork: this.getNetwork(chainId)
       })
+    } catch(e) {
+      window.location.reload()
+    }
+  }
 
-      this.watchAccounts0()
+  async connect(dontShowError) {
+
+    if (typeof window.ethereum !== 'undefined') {
+
+      if (await window.ethereum.request({method: 'eth_requestAccounts'})) {
+
+        window.ethereum.on('accountsChanged', () => this.setWallet())
+        window.ethereum.on('chainChanged', () => window.location.reload())
+        window.ethereum.on('disconnect', () => window.location.reload())
+
+        this.setWallet()
+      }
+
     } else {
 
-      // console.info(e)
-
-      this.setStore({
-        modalTitle: 'No wallet extention found',
-        modalBody: 'Please, activate your wallet and reload the page',
-        showModal: true
-      })
+      if (!dontShowError) {
+        this.showModal(
+          'No wallet extention found',
+          'Please, activate your wallet and reload the page',
+          'Ok'
+        )
+      }
     }
 
   }
@@ -156,10 +139,13 @@ module.exports = class App extends Common {
     return network
   }
 
-  showModal(modalTitle, modalBody) {
+  showModal(modalTitle, modalBody, modalClose, secondButton, modalAction) {
     this.setStore({
       modalTitle,
       modalBody,
+      modalClose,
+      secondButton,
+      modalAction,
       showModal: true
     })
   }
@@ -202,45 +188,80 @@ module.exports = class App extends Common {
     })
   }
 
+  callMethod(method, args) {
+    if ([
+      'setDb',
+    ].indexOf(method) !== -1) {
+      this[method](args || {})
+    } else {
+      console.error(`Method ${method} not allowed.`)
+    }
+  }
+
+  api() {
+    return {
+      callMethod: this.callMethod,
+      db: this.db,
+      Store: this.state.Store,
+      setStore: this.setStore,
+      contracts: this.contracts,
+      connect: this.connect
+    }
+  }
+
   render() {
 
-    const Store = this.state.Store
+    const isApp = /app\./.test(location.host)
 
+    const api = this.api
+
+    const Store = this.state.Store
 
     const home = () => {
       return (
         <Home
-          Store={Store}
-          setStore={this.setStore}
+          api={api}
         />
       )
     }
 
-    // const signout = () => {
-    //   return (
-    //     <Signout
-    //       Store={Store}
-    //       setStore={this.setStore}
-    //     />
-    //   )
-    // }
+    const welcome = () => {
+      return (
+        <Welcome
+          api={api}
+        />
+      )
+    }
+
+    const getUsername = () => {
+      return (
+        <GetUsername
+          api={api}
+        />
+      )
+    }
+
+    const terms = () => {
+      return (
+        <Terms
+          api={api}
+        />
+      )
+    }
 
     const info = () => {
       return (
         <Info
-          Store={Store}
-          setStore={this.setStore}
+          api={api}
         />
       )
     }
 
     return <BrowserRouter>
       {
-        /app\./.test(location.host)
+        isApp
           ? <Menu
-            Store={Store}
-            setStore={this.setStore}
-            connect={this.connect}
+            api={api}
           />
           : null
 
@@ -248,13 +269,17 @@ module.exports = class App extends Common {
 
       <main>
         {/*<Link to="/"><img src="/images/BrokenJazz-logo-small.png" className="imageLogo"/></Link>*/}
-        <Route exact path="/" component={home}/>
-        {/*<Route exact path="/signout" component={signout}/>*/}
+        {
+          isApp
+          ? <Route exact path="/" component={welcome}/>
+          : <Route exact path="/" component={home}/>
+        }
+        <Route exact path="/terms" component={terms}/>
+        <Route exact path="/get-username" component={getUsername}/>
         <Route exact path="/info" component={info}/>
       </main>
       <Footer
-        Store={Store}
-        setStore={this.setStore}
+        api={api}
       />
       <Modal
         show={Store.showModal}

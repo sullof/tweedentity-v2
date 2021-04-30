@@ -11,22 +11,14 @@ module.exports = class Menu extends Base {
     super(props)
 
     this.state = {
-      count: 0,
       expanded: false
     }
 
     this.bindMany([
-      'updateState',
       'toggleAdminMode',
       'makeNotVisible',
       'expandAddress'
     ])
-  }
-
-  updateState() {
-    this.setState({
-      count: this.state.count + 1
-    })
   }
 
   isMe(me) {
@@ -60,14 +52,15 @@ module.exports = class Menu extends Base {
 
   render() {
 
+
+    const {Store} = this
+
     let connectedTo =
       <span style={{color: '#ff2050', fontWeight: 300}}>
         Connected to an unsupported network <i style={{marginLeft: 5}} className="command fas fa-question-circle"/>
     </span>
 
-    const Store = this.Store
-
-    let {connectedNetwork, signedInAddress} = Store
+    let {connectedNetwork, wallet} = Store
 
     // console.log
 
@@ -77,13 +70,13 @@ module.exports = class Menu extends Base {
     if (connectedNetwork) {
 
       connectedTo =
-        <span><i className="fa fa-plug" style={{color: '#40cc90', marginRight: 10}}></i> Connected to {connectedNetwork}</span>
+        <span><i className="fa fa-plug" style={{color: '#40cc90', marginRight: 10}} /> Connected to {connectedNetwork}</span>
 
-      if (signedInAddress) {
-        let fullAddress = signedInAddress
+      if (wallet) {
+        let fullAddress = wallet
         shortAddress = fullAddress.substring(0, 8)
         if (this.state.expanded) {
-          address = <span>{signedInAddress} <i onClick={this.expandAddress} className="command fa fa-minus-circle"
+          address = <span>{wallet} <i onClick={this.expandAddress} className="command fa fa-minus-circle"
           /></span>
         } else {
           address = <span>{shortAddress}
@@ -93,7 +86,7 @@ module.exports = class Menu extends Base {
         }
       }
     } else {
-      connectedTo = <Button onClick={this.props.connect} variant="dark">Connect your wallet</Button>
+      connectedTo = <Button onClick={this.connect} variant="dark">Connect your wallet</Button>
     }
 
 
@@ -107,11 +100,11 @@ module.exports = class Menu extends Base {
       <Navbar.Brand href={linkToHome}><img src="/images/tweedentity-w-ico.png" style={{marginLeft: 12}}/></Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav"/>
       {
-        Store.signedInAddress
+        Store.wallet
           ? <Navbar.Collapse id="responsive-navbar-nav">
-            <Link to="/items">See all the tokens</Link>
-            <Link to="/claim">Claim a token</Link>
-            <Link to="/mint">Mint a claimed token</Link>
+            <Link to="/profile">Profile</Link>
+            <Link to="/add">Add account</Link>
+            {/*<Link to="/mint">Mint a claimed token</Link>*/}
           </Navbar.Collapse>
           :
           <Navbar.Collapse id="responsive-navbar-nav">

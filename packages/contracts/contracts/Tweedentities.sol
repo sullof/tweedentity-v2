@@ -17,6 +17,8 @@ import "./Application.sol";
 
 contract Tweedentities is Application, Managed {
 
+    uint constant public maxNumberOfChains = 100;
+
     event IdentitySet(
         uint indexed _appId,
         uint indexed _id,
@@ -47,6 +49,9 @@ contract Tweedentities is Application, Managed {
 
     uint public lastTweedentityId;
 
+    // There is no way to validate this on chain.
+    uint public chainProgressiveId;
+
     bool public nicknamesActive;
     mapping(uint => bytes32) public nicknamesById;
     mapping(bytes32 => bool) public takenNicknames;
@@ -56,13 +61,23 @@ contract Tweedentities is Application, Managed {
 
 
 
-    constructor(address _manager)
+    constructor(
+        address _manager,
+        uint _chainProgressiveId
+    )
     Managed(_manager)
     {
+        require(
+            _chainProgressiveId < maxNumberOfChains,
+            "_chainProgressiveId must be < 100"
+        );
+        chainProgressiveId = _chainProgressiveId;
         // twitter
         addApp(0x7477697474657200000000000000000000000000000000000000000000000000);
         // reddit
         addApp(0x7265646469740000000000000000000000000000000000000000000000000000);
+        // instagram
+        addApp(0x696e7374616772616d0000000000000000000000000000000000000000000000);
     }
 
 
@@ -186,6 +201,15 @@ contract Tweedentities is Application, Managed {
         emit IdentitySet(_appId, _id, _address);
     }
 
+
+    function fullId(
+        uint _appId,
+        uint _id
+
+    ) public view
+    returns (uint) {
+        return _id * maxNumberOfApps + _appId;
+    }
 
     function updateAddressByAppId(
         uint _appId,

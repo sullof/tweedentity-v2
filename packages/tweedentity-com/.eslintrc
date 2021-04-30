@@ -1,11 +1,8 @@
 {
-    "parser": "babel-eslint",
+    "parser": "@babel/eslint-parser",
     "env": {
-        // in CommonJS
         "node": true,
-        // browser
         "browser": true,
-        // mocha
         "mocha": true
     },
     "globals": {},
@@ -83,7 +80,7 @@
             "createClass": "createReactClass",
             "pragma": "React",
             "fragment": "Fragment",
-            "version": "detect",
+            "version": "17",
             "flowVersion": "0.53"
         }
     }

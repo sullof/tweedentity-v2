@@ -1,7 +1,8 @@
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
+const ESLintPlugin = require('eslint-webpack-plugin')
 
 var config = {
-  entry: './src/index.js',
+  entry: './src/helpers.js',
   output: {
     path: __dirname + '/public',
     publicPath: '/',
@@ -15,7 +16,7 @@ var config = {
       {
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
-        use: ['babel-loader', 'eslint-loader']
+        use: ['babel-loader']
       }
     ]
   },
@@ -37,7 +38,11 @@ module.exports = (env, argv) => {
   }
 
   if (argv.mode === 'production') {
-    //...
+    config.plugins.push(
+      new ESLintPlugin({
+        files: 'src/**/*.js',
+      })
+    )
   }
 
   return config;

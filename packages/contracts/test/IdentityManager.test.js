@@ -1,6 +1,6 @@
 const {expect, assert} = require("chai");
-const {assertThrowsMessage} = require('./helpers')
-const {utils} = require('@tweedentity/common')
+const {assertThrowsMessage, getSignature, getSignature2} = require('../src/helpers')
+const {utils} = require('../src')
 
 describe("IdentityManager", async function () {
 
@@ -42,17 +42,9 @@ describe("IdentityManager", async function () {
     chainId = await identity.getChainId()
   })
 
-  function getSignature(address, appId, id, timestamp) {
-    return utils.ECDSASign(ethers, '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d', ['uint256', 'address', 'uint256', 'uint256', 'uint256'], [chainId, address, appId, id, timestamp])
-  }
-
-  function getSignatures(address, appId, ids, timestamp) {
-    return utils.ECDSASign(ethers, '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d', ['uint256', 'address', 'uint256', 'uint256[]', 'uint256'], [chainId, address, appId, ids, timestamp])
-  }
-
   async function initNetworkAndDeploy() {
     Tweedentities = await ethers.getContractFactory("Tweedentities");
-    store = await Tweedentities.deploy(addr0);
+    store = await Tweedentities.deploy(addr0, 0);
     await store.deployed();
     Claimer = await ethers.getContractFactory("IdentityClaimer");
     claimer = await Claimer.deploy(addr0, store.address);
@@ -77,7 +69,7 @@ describe("IdentityManager", async function () {
       await initNetworkAndDeploy();
     });
 
-    it("should verify that the imanager can manage store and claimer", async function () {
+    it("should verify that the manager can manage store and claimer", async function () {
       assert.equal(await store.managers(identity.address), true)
       assert.equal(await claimer.managers(identity.address), true)
       assert.equal(await identity.storeSet(), true)
@@ -109,7 +101,8 @@ describe("IdentityManager", async function () {
 
       timestamp = await getTimestamp()
       tid = 637800044
-      signature = getSignature(bob.address, 1, tid, timestamp)
+
+      signature = await getSignature(ethers, identity, bob.address, 1, tid, timestamp)
       await expect(identity.connect(bob).setIdentity(1, tid, timestamp, signature))
           .to.emit(store, 'IdentitySet')
           .withArgs(1, tid, bob.address);
@@ -120,7 +113,7 @@ describe("IdentityManager", async function () {
       let numericRid = utils.fromAlphanumericStringToIntegerString(rid)
       timestamp = await getTimestamp()
 
-      signature = getSignature(bob.address, 2, numericRid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 2, numericRid, timestamp)
       await expect(identity.connect(bob).setIdentity(2, numericRid, timestamp, signature))
           .to.emit(store, 'IdentitySet')
           .withArgs(2, numericRid, bob.address);
@@ -132,7 +125,7 @@ describe("IdentityManager", async function () {
       let numericRid = utils.fromAlphanumericStringToIntegerString('1nihr8b3')
       timestamp = await getTimestamp()
 
-      signature = utils.ECDSASign(ethers, '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d', ['uint256', 'address', 'uint256[]', 'uint256[]', 'uint256'], [chainId, bob.address, [1, 2], [tid, numericRid], timestamp])
+      signature = getSignature2(ethers, identity, bob.address, [1, 2], [tid, numericRid], timestamp)
 
       await expect(identity.connect(bob).setMultipleIdentities([1, 2], [tid, numericRid], timestamp, signature))
           .to.emit(store, 'IdentitySet')
@@ -141,12 +134,26 @@ describe("IdentityManager", async function () {
           .withArgs(2, numericRid, bob.address);
     });
 
+    it("should set up a twitter and a primary identity", async function () {
+
+      let numericRid = utils.fromAlphanumericStringToIntegerString('1nihr8b3')
+      timestamp = await getTimestamp()
+
+      signature = getSignature2(ethers, identity, bob.address, [1, 0], [tid, 0], timestamp)
+
+      await expect(identity.connect(bob).setMultipleIdentities([1, 0], [tid, 0], timestamp, signature))
+          .to.emit(store, 'IdentitySet')
+          .withArgs(1, tid, bob.address)
+          .to.emit(store, 'IdentitySet')
+          .withArgs(0, 1, bob.address);
+    });
+
 
     it('should throw if app not supported', async function () {
 
       tid = 54433433
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 6, tid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 6, tid, timestamp)
 
       await assertThrowsMessage(
           identity.connect(bob).setIdentity(6, tid, timestamp, signature),
@@ -157,7 +164,7 @@ describe("IdentityManager", async function () {
 
       tid = '342343543456545676'
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
@@ -166,14 +173,14 @@ describe("IdentityManager", async function () {
           'Existing identity found for _appId/_address')
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, 87676, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, 87676, timestamp)
 
       await assertThrowsMessage(
           identity.connect(bob).setIdentity(1, 87676, timestamp, signature),
           'Existing identity found for _appId/_address')
 
       timestamp = await getTimestamp()
-      signature = getSignature(alice.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, alice.address, 1, tid, timestamp)
 
       await assertThrowsMessage(
           identity.connect(alice).setIdentity(1, tid, timestamp, signature),
@@ -183,7 +190,7 @@ describe("IdentityManager", async function () {
     it('should throw if the signature is expired', async function () {
 
       timestamp = (await getTimestamp() - 100)
-      signature = getSignature(alice.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, alice.address, 1, tid, timestamp)
 
       await identity.updateTimestampValidFor(5);
 
@@ -205,7 +212,7 @@ describe("IdentityManager", async function () {
       tid = 98786376453
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
@@ -225,12 +232,12 @@ describe("IdentityManager", async function () {
 
       timestamp = await getTimestamp()
 
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       timestamp = await getTimestamp()
 
-      signature = getSignature(alice.address, 1, 123, timestamp)
+      signature = getSignature(ethers, identity, alice.address, 1, 123, timestamp)
       await identity.connect(alice).setIdentity(1, 123, timestamp, signature)
 
       await assertThrowsMessage(
@@ -252,12 +259,12 @@ describe("IdentityManager", async function () {
     it("should claim an identity", async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       timestamp = await getTimestamp()
-      signature = getSignature(alice.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, alice.address, 1, tid, timestamp)
 
       await expect(identity.connect(alice).claimIdentity(1, tid, timestamp, signature))
           .to.emit(claimer, 'ClaimStarted')
@@ -267,7 +274,7 @@ describe("IdentityManager", async function () {
     it('should throw if identity does not exist', async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(alice.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, alice.address, 1, tid, timestamp)
 
       await assertThrowsMessage(
           identity.connect(alice).claimIdentity(1, tid, timestamp, signature),
@@ -278,19 +285,19 @@ describe("IdentityManager", async function () {
     it('should throw if claimer already has an identity', async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       let tid2 = '83746453635262'
 
       timestamp = await getTimestamp()
-      signature = getSignature(alice.address, 1, tid2, timestamp)
+      signature = getSignature(ethers, identity, alice.address, 1, tid2, timestamp)
 
       await identity.connect(alice).setIdentity(1, tid2, timestamp, signature)
 
       timestamp = await getTimestamp()
-      signature = getSignature(alice.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, alice.address, 1, tid, timestamp)
 
       await assertThrowsMessage(
           identity.connect(alice).claimIdentity(1, tid, timestamp, signature),
@@ -300,17 +307,17 @@ describe("IdentityManager", async function () {
     it('should throw if joe claims an identity already claimed by alice', async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       timestamp = await getTimestamp()
-      signature = getSignature(alice.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, alice.address, 1, tid, timestamp)
 
       await identity.connect(alice).claimIdentity(1, tid, timestamp, signature)
 
       timestamp = await getTimestamp()
-      signature = getSignature(joe.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, joe.address, 1, tid, timestamp)
 
       await assertThrowsMessage(
           identity.connect(joe).claimIdentity(1, tid, timestamp, signature),
@@ -320,12 +327,12 @@ describe("IdentityManager", async function () {
     it("should cancel a claim", async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       timestamp = await getTimestamp()
-      signature = getSignature(alice.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, alice.address, 1, tid, timestamp)
 
       await identity.connect(alice).claimIdentity(1, tid, timestamp, signature)
 
@@ -337,12 +344,12 @@ describe("IdentityManager", async function () {
     it("should claim an identity and try to get it too early", async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       timestamp = await getTimestamp()
-      signature = getSignature(joe.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, joe.address, 1, tid, timestamp)
 
       await identity.connect(joe).claimIdentity(1, tid, timestamp, signature)
 
@@ -355,12 +362,12 @@ describe("IdentityManager", async function () {
     it("should claim an identity and try to get it too late", async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
 
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       timestamp = await getTimestamp()
-      signature = getSignature(joe.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, joe.address, 1, tid, timestamp)
 
       await identity.connect(joe).claimIdentity(1, tid, timestamp, signature)
 
@@ -377,11 +384,11 @@ describe("IdentityManager", async function () {
     it("should claim an identity and get it", async function () {
 
       timestamp = await getTimestamp()
-      signature = getSignature(bob.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
       await identity.connect(bob).setIdentity(1, tid, timestamp, signature)
 
       timestamp = await getTimestamp()
-      signature = getSignature(joe.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, joe.address, 1, tid, timestamp)
 
       await identity.connect(joe).claimIdentity(1, tid, timestamp, signature)
 
@@ -389,7 +396,7 @@ describe("IdentityManager", async function () {
       await utils.sleep(5000)
 
       timestamp = await getTimestamp()
-      signature = getSignature(joe.address, 1, tid, timestamp)
+      signature = getSignature(ethers, identity, joe.address, 1, tid, timestamp)
 
       await expect(identity.connect(joe).updateClaimedIdentity(1, tid, timestamp, signature))
           .to.emit(store, 'IdentityUpdated')

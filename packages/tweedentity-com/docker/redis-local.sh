@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # this allow to run the server locally as
-#    node index.js --redis-local
+#    node helpers.js --redis-local
 
 docker run \
   --name redis-local \
