@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 
 /**
- * @title IdentityStore
+ * @title Application
  * @version 1.0.0
  * @author Francesco Sullo <francesco@sullo.co>
- * @dev Key/value store for identities
+ * @dev Key/value store for apps
  */
 
 import "@openzeppelin/contracts/access/Ownable.sol";

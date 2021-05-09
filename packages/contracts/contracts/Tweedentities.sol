@@ -202,15 +202,6 @@ contract Tweedentities is Application, Managed {
     }
 
 
-    function fullId(
-        uint _appId,
-        uint _id
-
-    ) public view
-    returns (uint) {
-        return _id * maxNumberOfApps + _appId;
-    }
-
     function updateAddressByAppId(
         uint _appId,
         address _oldAddress,
@@ -251,10 +242,17 @@ contract Tweedentities is Application, Managed {
         uint[] memory ids = new uint[](lastAppId);
         for (uint i = 0; i <= lastAppId; i++) {
             if (_idByAddress[i][_address] != 0) {
-                ids[i - 1] = _idByAddress[i][_address];
+                ids[i] = _idByAddress[i][_address];
             }
         }
         return ids;
+    }
+
+
+    function profile() public view
+    returns (uint[] memory)
+    {
+        return profile(msg.sender);
     }
 
 

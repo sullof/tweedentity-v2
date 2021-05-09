@@ -106,6 +106,9 @@ describe("IdentityManager", async function () {
       await expect(identity.connect(bob).setIdentity(1, tid, timestamp, signature))
           .to.emit(store, 'IdentitySet')
           .withArgs(1, tid, bob.address);
+
+      assert.equal(await store.addressById(1, tid), bob.address)
+      assert.equal(await store.idByAddress(1, bob.address), tid)
     });
 
     it("should set up a reddit identity", async function () {

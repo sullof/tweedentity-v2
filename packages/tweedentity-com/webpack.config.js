@@ -2,7 +2,7 @@ const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
 const ESLintPlugin = require('eslint-webpack-plugin')
 
 var config = {
-  entry: './src/helpers.js',
+  entry: './src',
   output: {
     path: __dirname + '/public',
     publicPath: '/',

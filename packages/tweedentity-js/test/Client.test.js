@@ -1,18 +1,15 @@
 const {expect, assert} = require("chai");
 const {assertThrowsMessage, getSignature, getSignature2} = require('../../contracts/src/helpers')
-const {utils} = require('../../contracts/src')
+const Client = require('../src/Client')
+const utils = require('../src/utils')
+const config = require('../config')
+const {deployAll} = require('./helpers')
 
-describe("Client", async function () {
+describe.only("Client", async function () {
 
-  let Tweedentities
   let store
-  let Claimer
   let claimer
-  let IdentityManager
   let identity
-  let Twiptos;
-  let tweedentity;
-  let Registry
   let registry
 
   const apps = {
@@ -23,8 +20,10 @@ describe("Client", async function () {
 
   let owner, oracle, org, bob, alice
   let signature
-  let tid = '273645362718263746'
-  let tid2 = '3627534'
+  let bobTid = '273645362718263746'
+  let bobRid = utils.fromAlphanumericStringToIntegerString('1nihr8b3')
+  let aliceTid = '3627534'
+
   let addr0 = '0x0000000000000000000000000000000000000000'
 
   const rid = 'fxP8r3'
@@ -44,62 +43,25 @@ describe("Client", async function () {
 
   async function initNetworkAndDeploy() {
 
-    // store
-    Tweedentities = await ethers.getContractFactory("Tweedentities");
-    store = await Tweedentities.deploy(addr0, 0);
-    await store.deployed();
-    //claimer
-    Claimer = await ethers.getContractFactory("IdentityClaimer");
-    claimer = await Claimer.deploy(addr0, store.address);
-    await claimer.deployed();
-    await store.addManager(claimer.address)
-    // identity manager
-    IdentityManager = await ethers.getContractFactory("IdentityManager");
-    identity = await IdentityManager.deploy(oracle.address, store.address, claimer.address);
-    await identity.deployed();
-    await store.addManager(identity.address);
-    await claimer.addManager(identity.address);
-    // token token
-    Twiptos = await ethers.getContractFactory("Twiptos");
-    tweedentity = await Twiptos.deploy(
-        oracle.address,
-        org.address,
-        "https://store.token.com/metadata/{id}.json",
-        store.address
-    );
-    await tweedentity.deployed();
+    let contracts = await deployAll(ethers, oracle)
 
-    names = [
-      'Tweedentities',
-      'IdentityManager',
-      'IdentityClaimer',
-      'Twiptos'
-    ]
-    bytes32Names = names.map(e => ethers.utils.formatBytes32String(e))
-
-    addresses = [
-      store.address,
-      identity.address,
-      claimer.address,
-      tweedentity.address
-    ]
-
-    Registry = await ethers.getContractFactory("ZeroXNilRegistry");
-    registry = await Registry.deploy(
-        bytes32Names,
-        addresses
-    );
-    await registry.deployed();
-
-    let numericRid = utils.fromAlphanumericStringToIntegerString('1nihr8b3')
-    timestamp = await getTimestamp()
-    signature = getSignature2(ethers, identity, bob.address, [0, 1, 2], [0, tid, numericRid], timestamp)
-    await identity.connect(bob).setMultipleIdentities([0, 1, 2], [0, tid, numericRid], timestamp, signature)
+    store = contracts.tweedentities
+    claimer = contracts.claimer
+    identity = contracts.identityManager
+    registry = contracts.zeroXNilRegistry
 
     timestamp = await getTimestamp()
-    signature = getSignature2(ethers, identity, alice.address, [0, 1], [0, tid2], timestamp)
-    await identity.connect(alice).setMultipleIdentities([0, 1], [0, tid2], timestamp, signature)
+    signature = getSignature2(ethers, identity, bob.address, [0, 1, 2], [0, bobTid, bobRid], timestamp)
+    await identity.connect(bob).setMultipleIdentities([0, 1, 2], [0, bobTid, bobRid], timestamp, signature)
 
+    timestamp = await getTimestamp()
+    signature = getSignature2(ethers, identity, alice.address, [0, 1], [0, aliceTid], timestamp)
+    await identity.connect(alice).setMultipleIdentities([0, 1], [0, aliceTid], timestamp, signature)
+
+    config.deployed.ZeroXNilRegistry['31337'] = {
+      address: registry.address,
+      when: (new Date).toISOString()
+    }
   }
 
   async function getTimestamp() {
@@ -114,11 +76,45 @@ describe("Client", async function () {
       await initNetworkAndDeploy();
     });
 
-    it("should verify that the manager can manage store and claimer", async function () {
-      // assert.equal(await store.managers(identity.address), true)
+    it("should build the instance", async function () {
+
+      const client = new Client(ethers.provider)
+      assert.equal((await client.connector.provider.getNetwork()).chainId, '31337')
+
     });
 
   })
+
+  describe('#getProfile', async function () {
+
+    beforeEach(async function () {
+      await initNetworkAndDeploy();
+    });
+
+    it("should load Bob's profile", async function () {
+
+      const client = new Client(ethers.provider)
+      let bobProfile = await client.getProfile(bob.address)
+      assert.equal(bobProfile.tweedentity.id, 1)
+      assert.equal(bobProfile.twitter.id, bobTid)
+      assert.equal(bobProfile.reddit.fullId, bobRid * 100 + 2)
+
+    });
+
+  })
+
+  describe('#supportedApps', async function () {
+
+    it("should load the supported apps", async function () {
+
+      const supported = Client.supportedApps()
+      assert.equal(supported.length, 3)
+      assert.equal(supported[2], 'reddit')
+
+    });
+
+  })
+
 
 
 });

@@ -1,5 +1,5 @@
 {
-  "when": "2021-04-26T06:24:03.218Z",
+  "when": "2021-05-03T05:45:57.568Z",
   "contracts": {
     "Tweedentities": [
       {
@@ -486,6 +486,19 @@
         "type": "function"
       },
       {
+        "inputs": [],
+        "name": "profile",
+        "outputs": [
+          {
+            "internalType": "uint256[]",
+            "name": "",
+            "type": "uint256[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
         "inputs": [
           {
             "internalType": "address",
@@ -936,30 +949,6 @@
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "bytes32",
-            "name": "_hash",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes",
-            "name": "_signature",
-            "type": "bytes"
-          }
-        ],
-        "name": "isSignedByOracle",
-        "outputs": [
-          {
-            "internalType": "bool",
-            "name": "",
-            "type": "bool"
           }
         ],
         "stateMutability": "view",
@@ -2275,30 +2264,6 @@
           }
         ],
         "name": "isNotTooEarly",
-        "outputs": [
-          {
-            "internalType": "bool",
-            "name": "",
-            "type": "bool"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "bytes32",
-            "name": "_hash",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes",
-            "name": "_signature",
-            "type": "bytes"
-          }
-        ],
-        "name": "isSignedByOracle",
         "outputs": [
           {
             "internalType": "bool",

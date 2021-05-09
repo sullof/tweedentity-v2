@@ -342,11 +342,17 @@ describe("Tweedentities", async function () {
       await store.connect(manager).setAddressAndIdByAppId(1, user.address, tid)
       await store.connect(manager).setAddressAndIdByAppId(2, user.address, numericRid)
 
-      let profile = await store.profile(user.address)
-      assert.equal(profile[0].toNumber(), tid)
-      assert.equal(profile[1].toNumber(), numericRid)
+      let profile = await store['profile(address)'](user.address)
+      assert.equal(profile[1].toNumber(), tid)
+      assert.equal(profile[2].toNumber(), numericRid)
 
-      profile = await store.profile(user2.address)
+      await store.connect(manager).setAddressAndIdByAppId(0, user.address, 0)
+
+      profile = await store.connect(user.address)['profile()']()
+      assert.equal(profile[0].toNumber(), 1)
+      assert.equal(profile[1].toNumber(), tid)
+
+      profile = await store.connect(user2.address)['profile()']()
       assert.equal(profile[0].toNumber(), 0)
       assert.equal(profile[1].toNumber(), 0)
 

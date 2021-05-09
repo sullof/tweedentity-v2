@@ -6,7 +6,7 @@ const {sleep} = require('./server/lib/utils')
  * Get port from environment and store in Express.
  */
 
-const port = normalizePort('6969')
+const port = normalizePort('6996')
 app.set('port', port)
 
 /**

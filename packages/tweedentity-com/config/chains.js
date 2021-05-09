@@ -1,7 +1,9 @@
 const chains = {
 
-  // dev
   // [chainId, progressiveChainId, active]
+
+  // dev
+  hardhat: [31337, 0, true],
   localhost: [1337, 0, true],
 
   // test
