@@ -17,6 +17,8 @@ import "./Signable.sol";
 
 contract IdentityManager is ClaimerCaller, StoreCaller, Signable {
 
+//    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+
 //    bytes32 public  = "0x7a6dfc";
 
     uint private _currentTweedentityID;
@@ -36,6 +38,26 @@ contract IdentityManager is ClaimerCaller, StoreCaller, Signable {
         _currentTweedentityID++;
     }
 
+    modifier onlySignedByOracle(
+        uint _groupId,
+        uint _id,
+        uint _timestamp,
+        bytes memory _signature
+    ) {
+        require(
+            isSignedByOracle(
+                encodeForSignature(
+                    msg.sender,
+                    _groupId,
+                    _id,
+                    _timestamp
+                ),
+                _signature
+            ),
+            "Invalid signature"
+        );
+        _;
+    }
 
     constructor(
         address _oracle,
@@ -134,22 +156,5 @@ contract IdentityManager is ClaimerCaller, StoreCaller, Signable {
     {
         claimer.setClaimedIdentity(_appId, _id, msg.sender);
     }
-
-
-//    function stringToUint(
-//        string s
-//    ) internal
-//    view
-//    returns (uint result) {
-//        bytes memory b = bytes(s);
-//        uint i;
-//        result = 0;
-//        for (i = 0; i < b.length; i++) {
-//            uint c = uint(b[i]);
-//            if (c >= 48 && c <= 57) {
-//                result = result * 10 + (c - 48);
-//            }
-//        }
-//    }
 
 }

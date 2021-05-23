@@ -229,7 +229,7 @@ contract Twiptos is ERC1155, StoreCaller, Signable {
         address[] memory _donees,
         bytes memory _data
     ) external
-    onlyValidSignature(_timestamp)
+    onlyValidTimestamp(_timestamp)
     {
         require(
             isSignedByOracle(encodeForSignature(

@@ -86,8 +86,8 @@ class Account extends Base {
               && data.userId
               && !this.props.noSettings
               ? <i className="fa fa-cog settingsIcon command" onClick={() => {
-                this.setGlobalState({appNickname: this.props.webApp})
-                this.historyPush('manage-account')
+                // this.setGlobalState({appNickname: this.props.webApp})
+                // this.historyPush('manage-account')
               }} />
               : null
             }

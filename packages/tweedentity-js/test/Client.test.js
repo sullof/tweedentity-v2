@@ -48,7 +48,7 @@ describe.only("Client", async function () {
     store = contracts.tweedentities
     claimer = contracts.claimer
     identity = contracts.identityManager
-    registry = contracts.zeroXNilRegistry
+    registry = contracts.tweedentityRegistry
 
     timestamp = await getTimestamp()
     signature = getSignature2(ethers, identity, bob.address, [0, 1, 2], [0, bobTid, bobRid], timestamp)
@@ -58,7 +58,7 @@ describe.only("Client", async function () {
     signature = getSignature2(ethers, identity, alice.address, [0, 1], [0, aliceTid], timestamp)
     await identity.connect(alice).setMultipleIdentities([0, 1], [0, aliceTid], timestamp, signature)
 
-    config.deployed.ZeroXNilRegistry['31337'] = {
+    config.deployed.TweedentityRegistry['31337'] = {
       address: registry.address,
       when: (new Date).toISOString()
     }

@@ -1,36 +1,83 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-
 /**
  * @title Signable
- * @version 1.0.0
+ * @version 0.0.1
  * @author Francesco Sullo <francesco@sullo.co>
- * @dev Manages identities
  */
 
-import "hardhat/console.sol";
+import "./ISignable.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-contract Signable is Ownable {
+contract Signable is ISignable, Ownable {
 
     using ECDSA for bytes32;
 
-    //    byte private constant prefix = 0x19;
-    //    byte private constant version = 0;
-
-    event TimestampValidForUpdated(
-        uint _timestampValidFor
-    );
-
-    event OracleUpdated(
-        address _oracle
-    );
+    mapping (address => bool) public oracles;
+    address[] public oraclesAddress;
 
     address public oracle;
     uint public timestampValidFor = 1 days;
+
+    constructor(
+        address _oracle
+    )
+    {
+        oracles[_oracle] = true;
+        oraclesAddress.push[_oracle];
+    }
+
+    function _addOracle(address _oracle) internal
+    {
+        oracles[_oracle] = true;
+        oraclesAddress.push[_oracle];
+        emit OracleAdded(_oracle);
+    }
+
+    function updateOracle(address _oracle) external override
+    onlyOwner
+    {
+        oracle = _oracle;
+        emit OracleUpdated(_oracle);
+    }
+
+    function addOracle(address _oracle) external override
+    onlyOwner
+    {
+        if (!oracles[_oracle]) {
+
+        }
+        oracle = _oracle;
+        emit OracleUpdated(_oracle);
+    }
+
+    function removeOracle(address _oracle) external override
+    onlyOwner
+    {
+        oracle = _oracle;
+        emit OracleUpdated(_oracle);
+    }
+
+    function updateTimestampValidFor(uint _timestampValidFor) external override
+    onlyOwner
+    {
+        timestampValidFor = _timestampValidFor;
+        emit TimestampValidForUpdated(_timestampValidFor);
+    }
+
+    function getChainId()
+    public override view
+    returns (uint256) {
+        uint256 id;
+        assembly {
+            id := chainid()
+        }
+        return id;
+    }
+
 
     modifier onlyValidTimestamp(
         uint _timestamp
@@ -46,30 +93,9 @@ contract Signable is Ownable {
         _;
     }
 
-    modifier onlySignedByOracle(
-        uint _appId,
-        uint _id,
-        uint _timestamp,
-        bytes memory _signature
-    ) {
-        require(
-            isSignedByOracle(
-                encodeForSignature(
-                    msg.sender,
-                    _appId,
-                    _id,
-                    _timestamp
-                ),
-                _signature
-            ),
-            "Invalid signature"
-        );
-        _;
-    }
-
     function encodeForSignature(
         address _address,
-        uint _appId,
+        uint _groupId,
         uint _id,
         uint _timestamp
     ) public view
@@ -80,7 +106,7 @@ contract Signable is Ownable {
                 "\x19\x00",
                 _address,
                 getChainId(),
-                _appId,
+                _groupId,
                 _id,
                 _timestamp
             ));
@@ -88,7 +114,7 @@ contract Signable is Ownable {
 
     function encodeForSignature(
         address _address,
-        uint[] memory _appIds,
+        uint[] memory _groupIds,
         uint[] memory _ids,
         uint _timestamp
     ) public view
@@ -98,7 +124,7 @@ contract Signable is Ownable {
                 "\x19\x00",
                 _address,
                 getChainId(),
-                _appIds,
+                _groupIds,
                 _ids,
                 _timestamp
             ));
@@ -106,7 +132,7 @@ contract Signable is Ownable {
 
     function encodeForSignature(
         address _address,
-        uint _appId,
+        uint _groupId,
         uint[] memory _ids,
         uint _timestamp
     ) public view
@@ -116,49 +142,17 @@ contract Signable is Ownable {
                 "\x19\x00",
                 _address,
                 getChainId(),
-                _appId,
+                _groupId,
                 _ids,
                 _timestamp
             ));
-    }
-
-    constructor(
-        address _oracle
-    )
-    {
-        oracle = _oracle;
-    }
-
-    function getChainId()
-    public view
-    returns (uint256) {
-        uint256 id;
-        assembly {
-            id := chainid()
-        }
-        return id;
-    }
-
-
-    function updateOracle(address _oracle) external
-    onlyOwner
-    {
-        oracle = _oracle;
-        emit OracleUpdated(_oracle);
-    }
-
-    function updateTimestampValidFor(uint _timestampValidFor) external
-    onlyOwner
-    {
-        timestampValidFor = _timestampValidFor;
-        emit TimestampValidForUpdated(_timestampValidFor);
     }
 
 
     function isSignedByOracle(
         bytes32 _hash,
         bytes memory _signature
-    ) public view
+    ) public override view
     returns (bool)
     {
         return oracle == ECDSA.recover(_hash, _signature);

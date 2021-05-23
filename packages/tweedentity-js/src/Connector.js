@@ -13,12 +13,12 @@ class Connector {
 
     let chainId = (await this.provider.getNetwork()).chainId
 
-    let registry = config.deployed.ZeroXNilRegistry[chainId]
+    let registry = config.deployed.TweedentityRegistry[chainId]
     if (!registry) {
       throw new Error('Unsupported network.')
     }
 
-    this.contracts.ZeroXNilRegistry = new Contract(registry.address, config.ABIs.contracts.ZeroXNilRegistry, this.provider)
+    this.contracts.TweedentityRegistry = new Contract(registry.address, config.ABIs.contracts.TweedentityRegistry, this.provider)
 
     const names = [
       'Tweedentities',
@@ -29,7 +29,7 @@ class Connector {
     for (let name of names) {
       let bytes32Name = utils.stringToBytes32(name)
       try {
-        const address = await this.contracts.ZeroXNilRegistry.registry(bytes32Name)
+        const address = await this.contracts.TweedentityRegistry.registry(bytes32Name)
         this.contracts[name] = new Contract(address, config.ABIs.contracts[name], this.provider)
       } catch(e) {
         throw new Error(`Contract ${name} not found in registry`)

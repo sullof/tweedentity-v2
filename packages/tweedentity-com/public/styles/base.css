@@ -8,7 +8,7 @@ body {
     margin: 0;
     padding: 0;
     color: #0B1122;
-    font-family: 'Bree Serif';
+    font-family: 'Bree Serif', serif;
     background: url(../images/background.png) repeat-y !important;
     /*height: 100%;*/
 }
@@ -34,11 +34,11 @@ body {
 }
 
 .Lato {
-    font-family: 'Lato';
+    font-family: 'Lato', sans-serif;
 }
 
 .noto {
-    font-family: 'Noto Serif';
+    font-family: 'Noto Serif', serif;
 }
 
 .intro {

@@ -8,14 +8,15 @@ pragma solidity ^0.8.0;
  * @dev Key/value store for identities
  */
 
+
 import "hardhat/console.sol";
-import "./Managed.sol";
 import "./Application.sol";
 
+// the store will be managed by IdentityClaimer and IdentityManager
 
-// the store will be managed by the Claimer and the Manager
+contract Tweedentities is Application {
 
-contract Tweedentities is Application, Managed {
+    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
 
     uint constant public maxNumberOfChains = 100;
 
@@ -31,16 +32,16 @@ contract Tweedentities is Application, Managed {
         address indexed _address
     );
 
-    event NicknameSet(
-        uint indexed _id,
-        bytes32 nickname
-    );
-
-
     event DataChanged(
         uint indexed _id,
         bytes32 indexed key,
         bytes value
+    );
+
+    event UniqueDataChanged(
+        uint indexed _id,
+        bytes32 indexed key,
+        bytes32 value
     );
 
     mapping(uint => mapping(uint => address)) private _addressById;
@@ -49,52 +50,66 @@ contract Tweedentities is Application, Managed {
 
     uint public lastTweedentityId;
 
-    // There is no way to validate this on chain.
+    // Assigned during the deployment
     uint public chainProgressiveId;
 
-    bool public nicknamesActive;
-    mapping(uint => bytes32) public nicknamesById;
-    mapping(bytes32 => bool) public takenNicknames;
+    struct Extra {
+        bool isSupported;
+        bool isUnique;
+        bool isImmutable;
+    }
 
-    bytes32[] public supportedExtras;
+    mapping(bytes32 => Extra) public supportedExtras;
     mapping(uint => mapping(bytes32 => bytes)) public extras;
+    mapping(uint => mapping(bytes32 => bytes32)) public uniqueExtras;
+    mapping(bytes32 => mapping(bytes32 => bool)) public uniqueExtraExists;
 
 
+    modifier isSupported(bytes32 _key, bool _isUnique) {
+        require(
+            supportedExtras[_key].isSupported,
+            "Key not supported"
+        );
+        require(
+            supportedExtras[_key].isUnique == _isUnique,
+            "Invalid uniqueness"
+        );
+        _;
+    }
 
     constructor(
-        address _manager,
         uint _chainProgressiveId
     )
-    Managed(_manager)
     {
         require(
             _chainProgressiveId < maxNumberOfChains,
             "_chainProgressiveId must be < 100"
         );
         chainProgressiveId = _chainProgressiveId;
-        // twitter
-        addApp(0x7477697474657200000000000000000000000000000000000000000000000000);
-        // reddit
-        addApp(0x7265646469740000000000000000000000000000000000000000000000000000);
-        // instagram
-        addApp(0x696e7374616772616d0000000000000000000000000000000000000000000000);
+        addApp(keccak256("twitter"));
+        addApp(keccak256("reddit"));
+        addApp(keccak256("instagram"));
     }
-
-
 
     function setExtraKey(
-        bytes32 _key
+        bytes32 _key,
+        bool _unique,
+        bool _immutable
     ) external
-    onlyOwner
     {
-        supportedExtras.push(_key);
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'Not authorized');
+        require(
+            !supportedExtras[_key].isSupported,
+            "Key already active"
+        );
+        supportedExtras[_key] = Extra(true, _unique, _immutable);
     }
-
 
     function getExtras(
         address _address,
         bytes32 _key
     ) public view
+    isSupported(_key, false)
     returns (bytes memory _value)
     {
         uint id = _idByAddress[0][_address];
@@ -110,18 +125,8 @@ contract Tweedentities is Application, Managed {
         bytes32 _key,
         bytes calldata _value
     ) external
+    isSupported(_key, false)
     {
-        bool supported;
-        for (uint i = 0; i < supportedExtras.length; i++) {
-            if (supportedExtras[i] == _key) {
-                supported = true;
-                break;
-            }
-        }
-        require(
-            supported,
-            "Key not supported"
-        );
         uint id = _idByAddress[0][msg.sender];
         require(
             id != 0,
@@ -132,38 +137,50 @@ contract Tweedentities is Application, Managed {
     }
 
 
-    function activateNicknames() external
-    onlyOwner
+    function getUniqueExtras(
+        address _address,
+        bytes32 _key
+    ) public view
+    isSupported(_key, true)
+    returns (bytes32 _value)
     {
-        nicknamesActive = true;
+        uint id = _idByAddress[0][_address];
+        require(
+            id != 0,
+            "Account not found"
+        );
+        return uniqueExtras[id][_key];
     }
 
 
-    function setNickname(
-        bytes32 _nickname
+    function setUniqueExtras(
+        bytes32 _key,
+        bytes32 _value
     ) external
+    isSupported(_key, true)
     {
-        require(
-            nicknamesActive,
-            "Nicknames not active"
-        );
         uint id = _idByAddress[0][msg.sender];
         require(
             id != 0,
             "Account not found"
         );
-        // nicknames are immutable
-        require(
-            !takenNicknames[_nickname],
-            "Nickname taken"
-        );
-        require(
-            nicknamesById[id] == 0,
-            "Nicknames are immutable"
-        );
-        nicknamesById[id] = _nickname;
-        takenNicknames[_nickname] = true;
-        NicknameSet(id, _nickname);
+        if (supportedExtras[_key].isImmutable) {
+            require(
+                uniqueExtras[id][_key] == 0,
+                "Immutable key"
+            );
+        } else {
+            require(
+                uniqueExtras[id][_key] != _value,
+                "No change required"
+            );
+            if (uniqueExtras[id][_key] != 0) {
+                uniqueExtraExists[_key][uniqueExtras[id][_key]] = false;
+            }
+        }
+        uniqueExtraExists[_key][_value] = true;
+        uniqueExtras[id][_key] = _value;
+        emit UniqueDataChanged(id, _key, _value);
     }
 
 
@@ -172,8 +189,8 @@ contract Tweedentities is Application, Managed {
         address _address,
         uint _id
     ) external
-    onlyManager
     {
+        require(hasRole(MANAGER_ROLE, msg.sender), 'Not authorized');
         require(
             apps[_appId] > 0,
             "Unsupported app"
@@ -207,8 +224,8 @@ contract Tweedentities is Application, Managed {
         address _oldAddress,
         address _newAddress
     ) external
-    onlyManager
     {
+        require(hasRole(MANAGER_ROLE, msg.sender), 'Not authorized');
         require(
             _newAddress != address(0),
             "_newAddress cannot be 0x0"

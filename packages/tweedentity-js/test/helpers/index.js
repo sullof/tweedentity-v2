@@ -12,14 +12,16 @@ module.exports = {
 
     let Claimer = await ethers.getContractFactory("IdentityClaimer");
     let claimer = await Claimer.deploy(addr0, tweedentities.address);
-    await claimer.deployed();
-    await tweedentities.addManager(claimer.address)
+    await claimer.deployed()
 
     let IdentityManager = await ethers.getContractFactory("IdentityManager");
     let identityManager = await IdentityManager.deploy(oracle.address, tweedentities.address, claimer.address);
     await identityManager.deployed();
-    await tweedentities.addManager(identityManager.address);
-    await claimer.addManager(identityManager.address);
+
+    const MANAGER_ROLE = await tweedentities.MANAGER_ROLE()
+    await tweedentities.grantRole(MANAGER_ROLE, identityManager.address)
+    await tweedentities.grantRole(MANAGER_ROLE, claimer.address)
+    await claimer.grantRole(MANAGER_ROLE, identityManager.address)
 
     let names = [
       'Tweedentities',
@@ -34,18 +36,18 @@ module.exports = {
       claimer.address
     ]
 
-    let ZeroXNilRegistry = await ethers.getContractFactory("ZeroXNilRegistry");
-    let zeroXNilRegistry = await ZeroXNilRegistry.deploy(
+    let TweedentityRegistry = await ethers.getContractFactory("TweedentityRegistry");
+    let tweedentityRegistry = await TweedentityRegistry.deploy(
         bytes32Names,
         addresses
     );
-    await zeroXNilRegistry.deployed();
+    await tweedentityRegistry.deployed();
 
     return {
       tweedentities,
       claimer,
       identityManager,
-      zeroXNilRegistry
+      tweedentityRegistry
     }
 
   }

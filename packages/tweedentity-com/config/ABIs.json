@@ -177,7 +177,7 @@
           "type": "bytes32"
         }
       ],
-      "name": "activateKey",
+      "name": "setExtraKey",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -2444,7 +2444,7 @@
       "type": "function"
     }
   ],
-  "ZeroXNilRegistry": [
+  "TweedentityRegistry": [
     {
       "inputs": [
         {

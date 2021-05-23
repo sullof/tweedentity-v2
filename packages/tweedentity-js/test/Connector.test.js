@@ -46,9 +46,9 @@ describe("Connector", async function () {
     store = contracts.tweedentities
     claimer = contracts.claimer
     identity = contracts.identityManager
-    registry = contracts.zeroXNilRegistry
+    registry = contracts.tweedentityRegistry
 
-    config.deployed.ZeroXNilRegistry['31337'] = {
+    config.deployed.TweedentityRegistry['31337'] = {
       address: registry.address,
       when: (new Date).toISOString()
     }

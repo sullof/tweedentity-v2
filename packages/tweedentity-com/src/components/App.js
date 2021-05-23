@@ -59,7 +59,7 @@ module.exports = class App extends Common {
       'handleClose',
       'handleShow',
       'setStore',
-      'getContract',
+      'getContracts',
       'connect',
       'showModal',
       'callMethod',
@@ -88,12 +88,14 @@ module.exports = class App extends Common {
       const signer = provider.getSigner()
       const chainId = (await provider.getNetwork()).chainId
       const wallet = await signer.getAddress()
+      const contracts = await this.getContracts(chainId, provider)
       this.setStore({
         provider,
         signer,
         wallet,
         chainId,
-        connectedNetwork: this.getNetwork(chainId)
+        connectedNetwork: this.getNetwork(chainId),
+        contracts
       })
     } catch(e) {
       window.location.reload()
@@ -150,19 +152,31 @@ module.exports = class App extends Common {
     })
   }
 
-  getContract(config, chainId, web3Provider) {
-    let contract
+  async getContracts(chainId, web3Provider) {
+    let contracts = {}
     let networkNotSupported = false
     let connectedNetwork = null
 
     if (config.address[chainId]) {
-      contract = new Contract(config.address[chainId], config.abi, web3Provider)
+      const TweedentityRegistry = new Contract(config.address[chainId], config.abi.TweedentityRegistry, web3Provider)
+      contracts.TweedentityRegistry = TweedentityRegistry
+      const names = [
+        'Tweedentities',
+        'IdentityManager',
+        'IdentityClaimer',
+        'Twiptos'
+      ]
+      const bytes32Names = names.map(e => ethers.utils.formatBytes32String(e))
+
+      for (let i=0;i< names.length;i++) {
+        contracts[names[i]] = await TweedentityRegistry.registry(bytes32Names[i])
+      }
       connectedNetwork = config.supportedId[chainId]
     } else {
       networkNotSupported = true
     }
     this.setStore({
-      contract,
+      contracts,
       connectedNetwork,
       networkNotSupported
     })

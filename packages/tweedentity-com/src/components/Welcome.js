@@ -13,7 +13,6 @@ class Welcome extends Base {
     super(props)
 
     this.bindMany([
-      'getStats',
       'expandWallet'
     ])
 
@@ -26,48 +25,6 @@ class Welcome extends Base {
     await this.getStats(true)
   }
 
-
-  getStats(appNickname, walletAlreadyUsed) {
-
-    const termsAccepted = this.db.data.profile && this.db.data.profile.termsAccepted
-
-    if (termsAccepted) {
-
-      if (walletAlreadyUsed) {
-        window.location.href = '/get-username'
-      } else {
-
-        this.setGlobalState({}, {
-          loading: true
-        })
-
-        return this
-          .fetch('wallet-stats', 'POST', {
-            network: this.Store.chainId,
-            address: this.wallet,
-            claimer: this.props.app.contracts.claimer.address
-          })
-          .then((responseJson) => {
-            this.setGlobalState({
-              stats: responseJson
-            }, {
-              loading: false
-            })
-            window.location.href = '/wallet-stats'
-          })
-      }
-    } else {
-      this.setGlobalState({}, {
-        show: true,
-        modalTitle: 'Whoops',
-        modalBody: 'Before setting your tweedentity you must accept the term of usage and .',
-        secondButton: 'Open the terms',
-        modalAction: () => {
-          window.location.href = '/terms'
-        }
-      })
-    }
-  }
 
   expandWallet() {
     this.setState({
