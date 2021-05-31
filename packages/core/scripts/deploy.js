@@ -41,44 +41,44 @@ async function deploy(ethers) {
   await tweedentities.deployed();
 
   // claimer
-  const IdentityClaimer = await ethers.getContractFactory("IdentityClaimer");
-  const claimer = await IdentityClaimer.deploy(
+  const TweedentityClaimer = await ethers.getContractFactory("TweedentityClaimer");
+  const claimer = await TweedentityClaimer.deploy(
       tweedentities.address
   );
   await claimer.deployed();
 
   // identity manager
   const IdentityManager = await ethers.getContractFactory("IdentityManager");
-  const identityManager = await IdentityManager.deploy(
+  const TweedentityManager = await IdentityManager.deploy(
       oracle,
       tweedentities.address,
       claimer.address
   );
-  await identityManager.deployed();
+  await TweedentityManager.deployed();
 
   const MANAGER_ROLE = await tweedentities.MANAGER_ROLE()
-  await tweedentities.grantRole(MANAGER_ROLE, identityManager.address)
+  await tweedentities.grantRole(MANAGER_ROLE, TweedentityManager.address)
   await tweedentities.grantRole(MANAGER_ROLE, claimer.address)
-  await claimer.grantRole(MANAGER_ROLE, identityManager.address)
+  await claimer.grantRole(MANAGER_ROLE, TweedentityManager.address)
 
   if (devMode) {
     const timestamp = (await ethers.provider.getBlock()).timestamp - 1
     const tid = 5876772
     const bob = (await ethers.getSigners())[3]
-    const signature = await getSignature(ethers, identityManager, bob.address, 1, tid, timestamp)
-    await identityManager.connect(bob).setIdentity(1, tid, timestamp, signature)
+    const signature = await getSignature(ethers, TweedentityManager, bob.address, 1, tid, timestamp)
+    await TweedentityManager.connect(bob).setIdentity(1, tid, timestamp, signature)
   }
 
   let names = [
     'Tweedentities',
     'IdentityManager',
-    'IdentityClaimer'
+    'TweedentityClaimer'
   ]
   let bytes32Names = names.map(e => ethers.utils.formatBytes32String(e))
 
   let addresses = [
     tweedentities.address,
-    identityManager.address,
+    TweedentityManager.address,
     claimer.address
   ]
 
@@ -89,25 +89,7 @@ async function deploy(ethers) {
   );
   await registry.deployed();
 
-  //
-
-  // token
-  const Twiptos = await ethers.getContractFactory("Twiptos");
-  const twiptos = await Twiptos.deploy(
-      oracle,
-      donee,
-      uri,
-      tweedentities.address
-  );
-  await twiptos.deployed();
-
-  registry.setData(ethers.utils.formatBytes32String('Twiptos'), twiptos.address)
-
   let res = {
-    // Tweedentities: tweedentities.address,
-    // IdentityClaimer: claimer.address,
-    // IndentityManager: identityManager.address,
-    // Twiptos: twiptos.address,
     TweedentityRegistry: registry.address
   }
 

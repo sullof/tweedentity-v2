@@ -10,29 +10,29 @@ module.exports = {
     let tweedentities = await Tweedentities.deploy(addr0, 0);
     await tweedentities.deployed();
 
-    let Claimer = await ethers.getContractFactory("IdentityClaimer");
+    let Claimer = await ethers.getContractFactory("TweedentityClaimer");
     let claimer = await Claimer.deploy(addr0, tweedentities.address);
     await claimer.deployed()
 
     let IdentityManager = await ethers.getContractFactory("IdentityManager");
-    let identityManager = await IdentityManager.deploy(oracle.address, tweedentities.address, claimer.address);
-    await identityManager.deployed();
+    let TweedentityManager = await IdentityManager.deploy(oracle.address, tweedentities.address, claimer.address);
+    await TweedentityManager.deployed();
 
     const MANAGER_ROLE = await tweedentities.MANAGER_ROLE()
-    await tweedentities.grantRole(MANAGER_ROLE, identityManager.address)
+    await tweedentities.grantRole(MANAGER_ROLE, TweedentityManager.address)
     await tweedentities.grantRole(MANAGER_ROLE, claimer.address)
-    await claimer.grantRole(MANAGER_ROLE, identityManager.address)
+    await claimer.grantRole(MANAGER_ROLE, TweedentityManager.address)
 
     let names = [
       'Tweedentities',
       'IdentityManager',
-      'IdentityClaimer'
+      'TweedentityClaimer'
     ]
     let bytes32Names = names.map(e => utils.stringToBytes32(e))
 
     let addresses = [
       tweedentities.address,
-      identityManager.address,
+      TweedentityManager.address,
       claimer.address
     ]
 
@@ -46,7 +46,7 @@ module.exports = {
     return {
       tweedentities,
       claimer,
-      identityManager,
+      TweedentityManager,
       tweedentityRegistry
     }
 

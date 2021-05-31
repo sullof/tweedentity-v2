@@ -17,9 +17,9 @@ import "./Signable.sol";
 
 contract IdentityManager is ClaimerCaller, StoreCaller, Signable {
 
-//    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+    //    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
 
-//    bytes32 public  = "0x7a6dfc";
+    //    bytes32 public  = "0x7a6dfc";
 
     uint private _currentTweedentityID;
 
@@ -102,12 +102,15 @@ contract IdentityManager is ClaimerCaller, StoreCaller, Signable {
     onlyValidTimestamp(_timestamp)
     {
         require(
-            isSignedByOracle(encodeForSignature(
-                msg.sender,
-                _appIds,
-                _ids,
-                _timestamp
-            ), _signature),
+            isSignedByOracle(
+                encodeForSignature(
+                    msg.sender,
+                    _appIds,
+                    _ids,
+                    _timestamp
+                ),
+                _signature
+            ),
             "Invalid signature"
         );
         require(

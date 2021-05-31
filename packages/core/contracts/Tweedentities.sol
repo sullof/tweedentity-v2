@@ -12,7 +12,7 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 import "./Application.sol";
 
-// the store will be managed by IdentityClaimer and IdentityManager
+// the store will be managed by TweedentityClaimer and IdentityManager
 
 contract Tweedentities is Application {
 
@@ -97,7 +97,7 @@ contract Tweedentities is Application {
         bool _immutable
     ) external
     {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'Not authorized');
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized");
         require(
             !supportedExtras[_key].isSupported,
             "Key already active"
@@ -183,14 +183,14 @@ contract Tweedentities is Application {
         emit UniqueDataChanged(id, _key, _value);
     }
 
-
+    // solium-disable-next-line security/no-assign-params
     function setAddressAndIdByAppId(
         uint _appId,
         address _address,
         uint _id
     ) external
     {
-        require(hasRole(MANAGER_ROLE, msg.sender), 'Not authorized');
+        require(hasRole(MANAGER_ROLE, msg.sender), "Not authorized");
         require(
             apps[_appId] > 0,
             "Unsupported app"
@@ -225,7 +225,7 @@ contract Tweedentities is Application {
         address _newAddress
     ) external
     {
-        require(hasRole(MANAGER_ROLE, msg.sender), 'Not authorized');
+        require(hasRole(MANAGER_ROLE, msg.sender), "Not authorized");
         require(
             _newAddress != address(0),
             "_newAddress cannot be 0x0"

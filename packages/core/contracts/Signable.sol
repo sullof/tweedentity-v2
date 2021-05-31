@@ -7,16 +7,20 @@ pragma solidity ^0.8.0;
  * @author Francesco Sullo <francesco@sullo.co>
  */
 
-import "./ISignable.sol";
-
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-contract Signable is ISignable, Ownable {
+contract Signable is Ownable {
+
+    event TimestampValidForUpdated(uint _timestampValidFor);
+
+    event OracleAdded(address _oracle);
+    event OracleRemoved(address _oracle);
+    event OracleUpdated(address _oldOracle, address _newOracle);
 
     using ECDSA for bytes32;
 
-    mapping (address => bool) public oracles;
+    mapping(address => bool) public oracles;
     address[] public oraclesAddress;
 
     address public oracle;
@@ -26,42 +30,56 @@ contract Signable is ISignable, Ownable {
         address _oracle
     )
     {
-        oracles[_oracle] = true;
-        oraclesAddress.push[_oracle];
+        _addOracle(_oracle);
     }
 
     function _addOracle(address _oracle) internal
     {
         oracles[_oracle] = true;
-        oraclesAddress.push[_oracle];
+        oraclesAddress.push(_oracle);
         emit OracleAdded(_oracle);
     }
 
-    function updateOracle(address _oracle) external override
+    function addOracle(address _oracle) external
     onlyOwner
     {
-        oracle = _oracle;
-        emit OracleUpdated(_oracle);
+        require(_oracle != address(0), "Oracle can not be 0x0");
+        require(!oracles[_oracle], "Oracle already set");
+        _addOracle(_oracle);
     }
 
-    function addOracle(address _oracle) external override
+    function removeOracle(address _oracle) external
     onlyOwner
     {
-        if (!oracles[_oracle]) {
-
+        require(oracles[_oracle], "Oracle not found");
+        delete oracles[_oracle];
+        for (uint i = 0; i < oraclesAddress.length; i++) {
+            if (oraclesAddress[i] == _oracle) {
+                oraclesAddress[i] = address(0);
+            }
         }
-        oracle = _oracle;
-        emit OracleUpdated(_oracle);
+        emit OracleRemoved(_oracle);
     }
 
-    function removeOracle(address _oracle) external override
+    function updateOracle(address _oracle, address _newOracle) external
     onlyOwner
     {
-        oracle = _oracle;
-        emit OracleUpdated(_oracle);
+        require(_newOracle != address(0), "New oracle can not be 0x0");
+        require(_newOracle != _oracle, "No changes");
+        require(oracles[_oracle], "Oracle not found");
+        require(!oracles[_newOracle], "New oracle already set");
+
+        delete oracles[_oracle];
+        oracles[_newOracle] = true;
+        for (uint i = 0; i < oraclesAddress.length; i++) {
+            if (oraclesAddress[i] == _oracle) {
+                oraclesAddress[i] = _newOracle;
+            }
+        }
+        emit OracleUpdated(_oracle, _newOracle);
     }
 
-    function updateTimestampValidFor(uint _timestampValidFor) external override
+    function updateTimestampValidFor(uint _timestampValidFor) external
     onlyOwner
     {
         timestampValidFor = _timestampValidFor;
@@ -69,9 +87,10 @@ contract Signable is ISignable, Ownable {
     }
 
     function getChainId()
-    public override view
+    public view
     returns (uint256) {
         uint256 id;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             id := chainid()
         }
@@ -83,10 +102,12 @@ contract Signable is ISignable, Ownable {
         uint _timestamp
     ) {
         require(
+            // solium-disable-next-line security/no-block-members
             _timestamp < block.timestamp,
             "Invalid timestamp"
         );
         require(
+            // solium-disable-next-line security/no-block-members
             _timestamp > block.timestamp - timestampValidFor,
             "Signature expired"
         );
@@ -101,15 +122,16 @@ contract Signable is ISignable, Ownable {
     ) public view
     returns (bytes32)
     {
-        // EIP-191
-        return keccak256(abi.encodePacked(
+        return keccak256(
+            abi.encodePacked(
                 "\x19\x00",
                 _address,
                 getChainId(),
                 _groupId,
                 _id,
                 _timestamp
-            ));
+            )
+        );
     }
 
     function encodeForSignature(
@@ -120,14 +142,16 @@ contract Signable is ISignable, Ownable {
     ) public view
     returns (bytes32)
     {
-        return keccak256(abi.encodePacked(
+        return keccak256(
+            abi.encodePacked(
                 "\x19\x00",
                 _address,
                 getChainId(),
                 _groupIds,
                 _ids,
                 _timestamp
-            ));
+            )
+        );
     }
 
     function encodeForSignature(
@@ -138,24 +162,26 @@ contract Signable is ISignable, Ownable {
     ) public view
     returns (bytes32)
     {
-        return keccak256(abi.encodePacked(
+        return keccak256(
+            abi.encodePacked(
                 "\x19\x00",
                 _address,
                 getChainId(),
                 _groupId,
                 _ids,
                 _timestamp
-            ));
+            )
+        );
     }
 
 
     function isSignedByOracle(
         bytes32 _hash,
         bytes memory _signature
-    ) public override view
+    ) public view
     returns (bool)
     {
-        return oracle == ECDSA.recover(_hash, _signature);
+        return oracles[ECDSA.recover(_hash, _signature)];
     }
 
 }

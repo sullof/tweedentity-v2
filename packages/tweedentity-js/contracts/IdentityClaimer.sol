@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 
 /**
- * @title IdentityClaimer
+ * @title TweedentityClaimer
  * @version 1.0.0
  * @author Francesco Sullo <francesco@sullo.co>
  * @dev Manages identity claims
@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Managed.sol";
 import "./StoreCaller.sol";
 
-contract IdentityClaimer is Ownable, Managed, StoreCaller {
+contract TweedentityClaimer is Ownable, Managed, StoreCaller {
 
     event ClaimStarted(
         uint indexed _appId,

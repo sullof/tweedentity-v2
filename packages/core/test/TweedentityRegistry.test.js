@@ -40,7 +40,7 @@ describe("TweedentityRegistry", async function () {
     store = await Tweedentities.deploy(0);
     await store.deployed();
     //claimer
-    Claimer = await ethers.getContractFactory("IdentityClaimer");
+    Claimer = await ethers.getContractFactory("TweedentityClaimer");
     claimer = await Claimer.deploy(store.address);
     await claimer.deployed();
     // identity manager
@@ -56,7 +56,7 @@ describe("TweedentityRegistry", async function () {
     names = [
         'Tweedentities',
         'IdentityManager',
-        'IdentityClaimer'
+        'TweedentityClaimer'
     ]
     bytes32Names = names.map(e => ethers.utils.formatBytes32String(e))
 

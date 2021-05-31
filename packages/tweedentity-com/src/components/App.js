@@ -163,7 +163,7 @@ module.exports = class App extends Common {
       const names = [
         'Tweedentities',
         'IdentityManager',
-        'IdentityClaimer',
+        'TweedentityClaimer',
         'Twiptos'
       ]
       const bytes32Names = names.map(e => ethers.utils.formatBytes32String(e))

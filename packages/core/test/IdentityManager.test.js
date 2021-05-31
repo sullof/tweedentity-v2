@@ -46,7 +46,7 @@ describe("IdentityManager", async function () {
     Tweedentities = await ethers.getContractFactory("Tweedentities");
     store = await Tweedentities.deploy(0);
     await store.deployed();
-    Claimer = await ethers.getContractFactory("IdentityClaimer");
+    Claimer = await ethers.getContractFactory("TweedentityClaimer");
     claimer = await Claimer.deploy(store.address);
     await claimer.deployed();
     IdentityManager = await ethers.getContractFactory("IdentityManager");

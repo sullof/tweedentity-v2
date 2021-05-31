@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 
 /**
- * @title IdentityClaimer
+ * @title TweedentityClaimer
  * @version 1.0.0
  * @author Francesco Sullo <francesco@sullo.co>
  * @dev Manages identity claims
@@ -11,7 +11,7 @@ pragma solidity ^0.8.0;
 
 import "./StoreCaller.sol";
 
-contract IdentityClaimer is StoreCaller {
+contract TweedentityClaimer is StoreCaller {
 
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
 
@@ -65,7 +65,7 @@ contract IdentityClaimer is StoreCaller {
         uint _afterProbationTime
     ) external
     {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'Not authorized');
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized");
         probationTime = _probationTime;
         afterProbationTime = _afterProbationTime;
         emit ProbationTimesUpdated(_probationTime, _afterProbationTime);
@@ -93,6 +93,7 @@ contract IdentityClaimer is StoreCaller {
                 id = _claimByAddress[appId][msg.sender];
             }
             if (id != 0) {
+                // solium-disable-next-line security/no-block-members
                 if (_claimById[appId][id].when > block.timestamp - probationTime - afterProbationTime) {
                     claims[j] = FullClaim(_claimById[appId][id].claimer, appId, id, _claimById[appId][id].when);
                     j++;
@@ -112,7 +113,7 @@ contract IdentityClaimer is StoreCaller {
     ) external
     onlyIfStoreSet
     {
-        require(hasRole(MANAGER_ROLE, msg.sender), 'Not authorized');
+        require(hasRole(MANAGER_ROLE, msg.sender), "Not authorized");
         require(
             _appId > 0,
             "Tweedentity id can't be claimed"
@@ -130,16 +131,16 @@ contract IdentityClaimer is StoreCaller {
             "Claimer owns some identity"
         );
         require(
-            _claimById[_appId][_id].claimer == address(0)
-            || _claimById[_appId][_id].when < block.timestamp - probationTime - afterProbationTime,
+            // solium-disable-next-line security/no-block-members
+            _claimById[_appId][_id].claimer == address(0) || _claimById[_appId][_id].when < block.timestamp - probationTime - afterProbationTime,
             "Active claim found for identity"
         );
         require(
-            _claimByAddress[_appId][_claimer] == 0
-            || _claimById[_appId][_claimByAddress[_appId][_claimer]].when < block.timestamp - probationTime - afterProbationTime,
+            // solium-disable-next-line security/no-block-members
+            _claimByAddress[_appId][_claimer] == 0 || _claimById[_appId][_claimByAddress[_appId][_claimer]].when < block.timestamp - probationTime - afterProbationTime,
             "Active claim found for claimer"
         );
-
+        // solium-disable-next-line security/no-block-members
         _claimById[_appId][_id] = Claim(_claimer, block.timestamp);
         _claimByAddress[_appId][_claimer] = _id;
         emit ClaimStarted(_appId, _id, _claimer);
@@ -170,7 +171,7 @@ contract IdentityClaimer is StoreCaller {
     ) external
     onlyIfStoreSet
     {
-        require(hasRole(MANAGER_ROLE, msg.sender), 'Not authorized');
+        require(hasRole(MANAGER_ROLE, msg.sender), "Not authorized");
         require(
             store.idByAddress(_appId, _claimer) == 0,
             "Claimer owns another identity"
@@ -180,10 +181,12 @@ contract IdentityClaimer is StoreCaller {
             "Claim not found"
         );
         require(
+            // solium-disable-next-line security/no-block-members
             _claimById[_appId][_id].when < block.timestamp - probationTime,
             "Probation time not passed yet"
         );
         require(
+            // solium-disable-next-line security/no-block-members
             _claimById[_appId][_id].when > block.timestamp - probationTime - afterProbationTime,
             "Claim is expired"
         );

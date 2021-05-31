@@ -23,7 +23,7 @@ class Connector {
     const names = [
       'Tweedentities',
       'IdentityManager',
-      'IdentityClaimer'
+      'TweedentityClaimer'
     ]
 
     for (let name of names) {

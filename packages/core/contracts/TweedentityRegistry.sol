@@ -21,7 +21,7 @@ contract TweedentityRegistry is Ownable {
         bytes32[] memory _names,
         address[] memory _addresses
     ) {
-        for (uint i=0;i< _names.length; i++) {
+        for (uint i = 0; i < _names.length; i++) {
             setData(_names[i], _addresses[i]);
         }
     }
@@ -45,7 +45,8 @@ contract TweedentityRegistry is Ownable {
     public
     onlyOwner
     {
-        require(_address != address(0),
+        require(
+            _address != address(0),
             "Null address"
         );
         registry[_name] = _address;

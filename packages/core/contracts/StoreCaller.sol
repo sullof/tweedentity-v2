@@ -43,7 +43,7 @@ contract StoreCaller is AccessControl {
         address _store
     ) public
     {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'Not authorized');
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized");
         if (!storeSet && _store != address(0)) {
             store = IStoreOptimized(_store);
             storeSet = true;

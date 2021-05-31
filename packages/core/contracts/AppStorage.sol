@@ -32,7 +32,7 @@ contract AppStorage is AccessControl {
         bytes32 _nickname
     ) public
     {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'Not authorized');
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized");
         require(
             _nickname > 0,
             "Empty nickname"
