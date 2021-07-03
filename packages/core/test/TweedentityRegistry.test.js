@@ -17,13 +17,13 @@ describe("TweedentityRegistry", async function () {
   let bytes32Names
   let addresses
 
-  let owner, oracle, org, bob, alice, mark, joe, bill, wikileaks, assange
+  let owner, validator, org, bob, alice, mark, joe, bill, wikileaks, assange
   let addr0 = '0x0000000000000000000000000000000000000000'
 
   before(async function () {
     const signers = await ethers.getSigners()
     owner = signers[0];
-    oracle = signers[1];
+    validator = signers[1];
     org = signers[2];
     bob = signers[3];
     alice = signers[4];
@@ -40,12 +40,12 @@ describe("TweedentityRegistry", async function () {
     store = await Tweedentities.deploy(0);
     await store.deployed();
     //claimer
-    Claimer = await ethers.getContractFactory("IdentityClaimer");
+    Claimer = await ethers.getContractFactory("TweedentityClaimer");
     claimer = await Claimer.deploy(store.address);
     await claimer.deployed();
     // identity manager
     IdentityManager = await ethers.getContractFactory("IdentityManager");
-    identity = await IdentityManager.deploy(oracle.address, store.address, claimer.address);
+    identity = await IdentityManager.deploy(validator.address, store.address, claimer.address);
     await identity.deployed();
 
     const MANAGER_ROLE = await store.MANAGER_ROLE()
@@ -56,7 +56,7 @@ describe("TweedentityRegistry", async function () {
     names = [
         'Tweedentities',
         'IdentityManager',
-        'IdentityClaimer'
+        'TweedentityClaimer'
     ]
     bytes32Names = names.map(e => ethers.utils.formatBytes32String(e))
 

@@ -2,7 +2,7 @@ const {expect, assert} = require("chai");
 const {assertThrowsMessage} = require('../src/helpers')
 const {utils} = require('../src')
 
-describe("IdentityClaimer", async function () {
+describe("TweedentityClaimer", async function () {
 
   let Tweedentities
   let store
@@ -42,8 +42,8 @@ describe("IdentityClaimer", async function () {
     Tweedentities = await ethers.getContractFactory("Tweedentities");
     store = await Tweedentities.deploy(0);
     await store.deployed();
-    IdentityClaimer = await ethers.getContractFactory("IdentityClaimer");
-    claimer = await IdentityClaimer.deploy(store.address);
+    TweedentityClaimer = await ethers.getContractFactory("TweedentityClaimer");
+    claimer = await TweedentityClaimer.deploy(store.address);
     await claimer.deployed();
     const MANAGER_ROLE = await store.MANAGER_ROLE()
     await store.grantRole(MANAGER_ROLE, manager.address)
@@ -99,7 +99,7 @@ describe("IdentityClaimer", async function () {
 
       await assertThrowsMessage(
           claimer.connect(user4).setClaim(1, tid, user2.address),
-          'Not authorized')
+          "Not authorized")
 
     });
 

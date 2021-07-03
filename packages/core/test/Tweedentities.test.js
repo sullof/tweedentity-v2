@@ -267,7 +267,7 @@ describe("Tweedentities", async function () {
 
       await assertThrowsMessage(
           store.connect(manager2).setAddressAndIdByAppId(1, addr0, 23432),
-          'Not authorized')
+          "Not authorized")
     })
 
   })

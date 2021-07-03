@@ -17,7 +17,7 @@ describe("IdentityManager", async function () {
     facebook: [3, true]
   }
 
-  let owner, oracle, org, bob, alice, mark, joe, bill, wikileaks, assange
+  let owner, validator, org, bob, alice, mark, joe, bill, wikileaks, assange
   let signature
   let tid = '273645362718263746'
   let addr0 = '0x0000000000000000000000000000000000000000'
@@ -29,7 +29,7 @@ describe("IdentityManager", async function () {
   before(async function () {
     const signers = await ethers.getSigners()
     owner = signers[0];
-    oracle = signers[1];
+    validator = signers[1];
     org = signers[2];
     bob = signers[3];
     alice = signers[4];
@@ -46,11 +46,11 @@ describe("IdentityManager", async function () {
     Tweedentities = await ethers.getContractFactory("Tweedentities");
     store = await Tweedentities.deploy(0);
     await store.deployed();
-    Claimer = await ethers.getContractFactory("IdentityClaimer");
+    Claimer = await ethers.getContractFactory("TweedentityClaimer");
     claimer = await Claimer.deploy(store.address);
     await claimer.deployed();
     IdentityManager = await ethers.getContractFactory("IdentityManager");
-    identity = await IdentityManager.deploy(oracle.address, store.address, claimer.address);
+    identity = await IdentityManager.deploy(validator.address, store.address, claimer.address);
     await identity.deployed();
     const MANAGER_ROLE = await store.MANAGER_ROLE()
     await store.grantRole(MANAGER_ROLE, identity.address)

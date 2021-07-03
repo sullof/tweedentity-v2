@@ -25,7 +25,7 @@ contract Signable is Ownable {
         uint _timestampValidFor
     );
 
-    event OracleUpdated(
+    event ValidatorUpdated(
         address _oracle
     );
 
@@ -46,7 +46,7 @@ contract Signable is Ownable {
         _;
     }
 
-    modifier onlySignedByOracle(
+    modifier onlySignedByValidator(
         uint _appId,
         uint _id,
         uint _timestamp,

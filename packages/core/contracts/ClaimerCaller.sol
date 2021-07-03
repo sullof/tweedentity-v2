@@ -47,7 +47,7 @@ contract ClaimerCaller is AccessControl {
         address _claimer
     ) public
     {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'Not authorized');
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized");
         if (_claimer != address(0)) {
             claimer = IClaimerOptimized(_claimer);
             if (!claimerSet) {

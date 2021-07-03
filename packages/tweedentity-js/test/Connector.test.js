@@ -45,7 +45,7 @@ describe("Connector", async function () {
 
     store = contracts.tweedentities
     claimer = contracts.claimer
-    identity = contracts.identityManager
+    identity = contracts.TweedentityManager
     registry = contracts.tweedentityRegistry
 
     config.deployed.TweedentityRegistry['31337'] = {

@@ -47,7 +47,7 @@ describe.only("Client", async function () {
 
     store = contracts.tweedentities
     claimer = contracts.claimer
-    identity = contracts.identityManager
+    identity = contracts.TweedentityManager
     registry = contracts.tweedentityRegistry
 
     timestamp = await getTimestamp()

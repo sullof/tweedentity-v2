@@ -4,7 +4,7 @@ module.exports = [
   'https://api.tweedentity.com/metadata/{id}.json'
 ]
 
-//     address _oracle,
+//     address _validator,
 //     address _donee,
 //     string memory _uri,
 

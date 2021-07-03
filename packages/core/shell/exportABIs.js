@@ -10,7 +10,7 @@ const ABIs = {
 let names = [
   'Tweedentities',
   'IdentityManager',
-  'IdentityClaimer',
+  'TweedentityClaimer',
   'Twiptos',
   'TweedentityRegistry'
 ]

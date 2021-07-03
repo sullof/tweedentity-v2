@@ -38,11 +38,11 @@ contract IdentityManager is ClaimerCaller, StoreCaller, Signable {
 
 
     constructor(
-        address _oracle,
+        address _validator,
         address _store,
         address _claimer
     )
-    Signable(_oracle)
+    Signable(_validator)
     StoreCaller(_store)
     ClaimerCaller(_claimer)
     {
@@ -64,7 +64,7 @@ contract IdentityManager is ClaimerCaller, StoreCaller, Signable {
     ) external
     onlyIfStoreSet
     onlyValidTimestamp(_timestamp)
-    onlySignedByOracle(_appId, _id, _timestamp, _signature)
+    onlySignedByValidator(_appId, _id, _timestamp, _signature)
     {
         store.setAddressAndIdByAppId(_appId, msg.sender, _id);
     }
@@ -80,7 +80,7 @@ contract IdentityManager is ClaimerCaller, StoreCaller, Signable {
     onlyValidTimestamp(_timestamp)
     {
         require(
-            isSignedByOracle(encodeForSignature(
+            isSignedByValidator(encodeForSignature(
                 msg.sender,
                 _appIds,
                 _ids,
@@ -116,7 +116,7 @@ contract IdentityManager is ClaimerCaller, StoreCaller, Signable {
     ) external
     onlyIfClaimerSet
     onlyValidTimestamp(_timestamp)
-    onlySignedByOracle(_appId, _id, _timestamp, _signature)
+    onlySignedByValidator(_appId, _id, _timestamp, _signature)
     {
         claimer.setClaim(_appId, _id, msg.sender);
     }
@@ -130,7 +130,7 @@ contract IdentityManager is ClaimerCaller, StoreCaller, Signable {
     ) external
     onlyIfClaimerSet
     onlyValidTimestamp(_timestamp)
-    onlySignedByOracle(_appId, _id, _timestamp, _signature)
+    onlySignedByValidator(_appId, _id, _timestamp, _signature)
     {
         claimer.setClaimedIdentity(_appId, _id, msg.sender);
     }

@@ -691,7 +691,7 @@
           "type": "address"
         }
       ],
-      "name": "OracleUpdated",
+      "name": "ValidatorUpdated",
       "type": "event"
     },
     {
@@ -819,7 +819,7 @@
           "type": "bytes"
         }
       ],
-      "name": "isSignedByOracle",
+      "name": "isSignedByValidator",
       "outputs": [
         {
           "internalType": "bool",
@@ -1058,7 +1058,7 @@
           "type": "address"
         }
       ],
-      "name": "updateOracle",
+      "name": "updateValidator",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -1077,7 +1077,7 @@
       "type": "function"
     }
   ],
-  "IdentityClaimer": [
+  "TweedentityClaimer": [
     {
       "inputs": [
         {
@@ -1273,7 +1273,7 @@
               "type": "uint256"
             }
           ],
-          "internalType": "struct IdentityClaimer.FullClaim[]",
+          "internalType": "struct TweedentityClaimer.FullClaim[]",
           "name": "",
           "type": "tuple[]"
         }
@@ -1372,7 +1372,7 @@
               "type": "uint256"
             }
           ],
-          "internalType": "struct IdentityClaimer.Claim",
+          "internalType": "struct TweedentityClaimer.Claim",
           "name": "",
           "type": "tuple"
         }
@@ -1694,7 +1694,7 @@
           "type": "address"
         }
       ],
-      "name": "OracleUpdated",
+      "name": "ValidatorUpdated",
       "type": "event"
     },
     {
@@ -2045,7 +2045,7 @@
           "type": "bytes"
         }
       ],
-      "name": "isSignedByOracle",
+      "name": "isSignedByValidator",
       "outputs": [
         {
           "internalType": "bool",
@@ -2406,7 +2406,7 @@
           "type": "address"
         }
       ],
-      "name": "updateOracle",
+      "name": "updateValidator",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
