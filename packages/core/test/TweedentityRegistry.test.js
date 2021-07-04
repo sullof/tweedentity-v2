@@ -8,7 +8,7 @@ describe("TweedentityRegistry", async function () {
   let store
   let Claimer
   let claimer
-  let IdentityManager
+  let TweedentityManager
   let identity
   let Registry
   let registry
@@ -44,8 +44,13 @@ describe("TweedentityRegistry", async function () {
     claimer = await Claimer.deploy(store.address);
     await claimer.deployed();
     // identity manager
-    IdentityManager = await ethers.getContractFactory("IdentityManager");
-    identity = await IdentityManager.deploy(validator.address, store.address, claimer.address);
+
+    const Validatable = await ethers.getContractFactory("Validatable");
+    const validatable = await Validatable.deploy();
+    await validatable.deployed();
+
+    TweedentityManager = await ethers.getContractFactory("TweedentityManager");
+    identity = await TweedentityManager.deploy(store.address, claimer.address, validatable.address);
     await identity.deployed();
 
     const MANAGER_ROLE = await store.MANAGER_ROLE()
@@ -55,7 +60,7 @@ describe("TweedentityRegistry", async function () {
 
     names = [
         'Tweedentities',
-        'IdentityManager',
+        'TweedentityManager',
         'TweedentityClaimer'
     ]
     bytes32Names = names.map(e => ethers.utils.formatBytes32String(e))

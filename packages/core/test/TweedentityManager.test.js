@@ -1,14 +1,16 @@
 const {expect, assert} = require("chai");
-const {assertThrowsMessage, getSignature, getSignature2} = require('../src/helpers')
+const {assertThrowsMessage, getSignature} = require('../src/helpers')
 const {utils} = require('../src')
 
-describe("IdentityManager", async function () {
+describe("TweedentityManager", async function () {
 
   let Tweedentities
   let store
   let Claimer
   let claimer
-  let IdentityManager
+  let Validatable
+  let validatable
+  let TweedentityManager
   let identity
 
   const apps = {
@@ -39,7 +41,7 @@ describe("IdentityManager", async function () {
     joe = signers[8];
     bill = signers[9];
     await initNetworkAndDeploy()
-    chainId = await identity.getChainId()
+    chainId = await validatable.getChainId()
   })
 
   async function initNetworkAndDeploy() {
@@ -49,8 +51,14 @@ describe("IdentityManager", async function () {
     Claimer = await ethers.getContractFactory("TweedentityClaimer");
     claimer = await Claimer.deploy(store.address);
     await claimer.deployed();
-    IdentityManager = await ethers.getContractFactory("IdentityManager");
-    identity = await IdentityManager.deploy(validator.address, store.address, claimer.address);
+    Validatable = await ethers.getContractFactory("Validatable");
+    validatable = await Validatable.deploy();
+    await validatable.deployed();
+    await validatable.addValidator(1, utils.stringToBytes32('tweedentityV2'), validator.address)
+    await validatable.addValidator(2, utils.stringToBytes32('tweedentityV2'), validator.address)
+    await validatable.addValidator(3, utils.stringToBytes32('tweedentityV2'), validator.address)
+    TweedentityManager = await ethers.getContractFactory("TweedentityManager");
+    identity = await TweedentityManager.deploy(store.address, claimer.address, validatable.address);
     await identity.deployed();
     const MANAGER_ROLE = await store.MANAGER_ROLE()
     await store.grantRole(MANAGER_ROLE, identity.address)
@@ -94,7 +102,7 @@ describe("IdentityManager", async function () {
 
       await assertThrowsMessage(
           identity.connect(bob).setMyIdentity(),
-          'Existing identity found for _appId/_address')
+          'Existing identity found for appId_/address_')
 
     });
 
@@ -129,9 +137,10 @@ describe("IdentityManager", async function () {
       let numericRid = utils.fromAlphanumericStringToIntegerString('1nihr8b3')
       timestamp = await getTimestamp()
 
-      signature = getSignature2(ethers, identity, bob.address, [1, 2], [tid, numericRid], timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
+      let signature2 = getSignature(ethers, identity, bob.address, 2, numericRid, timestamp)
 
-      await expect(identity.connect(bob).setMultipleIdentities([1, 2], [tid, numericRid], timestamp, signature))
+      await expect(identity.connect(bob).setMultipleIdentities([1, 2], [tid, numericRid], timestamp, [signature, signature2]))
           .to.emit(store, 'IdentitySet')
           .withArgs(1, tid, bob.address)
           .to.emit(store, 'IdentitySet')
@@ -143,9 +152,9 @@ describe("IdentityManager", async function () {
       let numericRid = utils.fromAlphanumericStringToIntegerString('1nihr8b3')
       timestamp = await getTimestamp()
 
-      signature = getSignature2(ethers, identity, bob.address, [1, 0], [tid, 0], timestamp)
+      signature = getSignature(ethers, identity, bob.address, 1, tid, timestamp)
 
-      await expect(identity.connect(bob).setMultipleIdentities([1, 0], [tid, 0], timestamp, signature))
+      await expect(identity.connect(bob).setMultipleIdentities([1, 0], [tid, 0], timestamp, [signature, 0x0]))
           .to.emit(store, 'IdentitySet')
           .withArgs(1, tid, bob.address)
           .to.emit(store, 'IdentitySet')
@@ -161,7 +170,7 @@ describe("IdentityManager", async function () {
 
       await assertThrowsMessage(
           identity.connect(bob).setIdentity(6, tid, timestamp, signature),
-          'Unsupported app')
+          'Invalid signature')
     })
 
     it('should throw if already set', async function () {
@@ -174,21 +183,21 @@ describe("IdentityManager", async function () {
 
       await assertThrowsMessage(
           identity.connect(bob).setIdentity(1, tid, timestamp, signature),
-          'Existing identity found for _appId/_address')
+          'Existing identity found for appId_/address_')
 
       timestamp = await getTimestamp()
       signature = getSignature(ethers, identity, bob.address, 1, 87676, timestamp)
 
       await assertThrowsMessage(
           identity.connect(bob).setIdentity(1, 87676, timestamp, signature),
-          'Existing identity found for _appId/_address')
+          'Existing identity found for appId_/address_')
 
       timestamp = await getTimestamp()
       signature = getSignature(ethers, identity, alice.address, 1, tid, timestamp)
 
       await assertThrowsMessage(
           identity.connect(alice).setIdentity(1, tid, timestamp, signature),
-          'Existing identity found for _appId/_id')
+          'Existing identity found for appId_/id_')
     })
 
     it('should throw if the signature is expired', async function () {
@@ -196,7 +205,7 @@ describe("IdentityManager", async function () {
       timestamp = (await getTimestamp() - 100)
       signature = getSignature(ethers, identity, alice.address, 1, tid, timestamp)
 
-      await identity.updateTimestampValidFor(5);
+      await validatable.updateTimestampValidFor(1, 5);
 
       await assertThrowsMessage(
           identity.connect(alice).setIdentity(1, tid, timestamp, signature),
@@ -229,7 +238,7 @@ describe("IdentityManager", async function () {
 
       await assertThrowsMessage(
           identity.connect(mark).updateIdentity(1, joe.address),
-          'No identity found for _appId/_oldAddress')
+          'No identity found for appId_/oldAddress_')
     })
 
     it('should throw if trying to update with an address that already owns an id', async function () {
@@ -246,7 +255,7 @@ describe("IdentityManager", async function () {
 
       await assertThrowsMessage(
           identity.connect(bob).updateIdentity(1, alice.address),
-          'Existing identity found for _appId/_newAddress')
+          'Existing identity found for appId_/newAddress_')
     })
 
   })

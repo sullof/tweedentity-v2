@@ -11,38 +11,15 @@ pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 import "./Application.sol";
+import "./interfaces/ITweedentities.sol";
 
 // the store will be managed by TweedentityClaimer and IdentityManager
 
-contract Tweedentities is Application {
+contract Tweedentities is Application, ITweedentities {
 
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
 
     uint constant public maxNumberOfChains = 100;
-
-    event IdentitySet(
-        uint indexed _appId,
-        uint indexed _id,
-        address indexed _address
-    );
-
-    event IdentityUpdated(
-        uint indexed _appId,
-        uint indexed _id,
-        address indexed _address
-    );
-
-    event DataChanged(
-        uint indexed _id,
-        bytes32 indexed key,
-        bytes value
-    );
-
-    event UniqueDataChanged(
-        uint indexed _id,
-        bytes32 indexed key,
-        bytes32 value
-    );
 
     mapping(uint => mapping(uint => address)) private _addressById;
     mapping(uint => mapping(address => uint)) private _idByAddress;
@@ -65,208 +42,208 @@ contract Tweedentities is Application {
     mapping(bytes32 => mapping(bytes32 => bool)) public uniqueExtraExists;
 
 
-    modifier isSupported(bytes32 _key, bool _isUnique) {
+    modifier isSupported(bytes32 key_, bool _isUnique) {
         require(
-            supportedExtras[_key].isSupported,
+            supportedExtras[key_].isSupported,
             "Key not supported"
         );
         require(
-            supportedExtras[_key].isUnique == _isUnique,
+            supportedExtras[key_].isUnique == _isUnique,
             "Invalid uniqueness"
         );
         _;
     }
 
     constructor(
-        uint _chainProgressiveId
+        uint chainProgressiveId_
     )
     {
         require(
-            _chainProgressiveId < maxNumberOfChains,
-            "_chainProgressiveId must be < 100"
+            chainProgressiveId_ < maxNumberOfChains,
+            "chainProgressiveId_ must be < 100"
         );
-        chainProgressiveId = _chainProgressiveId;
+        chainProgressiveId = chainProgressiveId_;
         addApp(keccak256("twitter"));
         addApp(keccak256("reddit"));
         addApp(keccak256("instagram"));
     }
 
     function setExtraKey(
-        bytes32 _key,
-        bool _unique,
-        bool _immutable
-    ) external
+        bytes32 key_,
+        bool unique_,
+        bool immutable_
+    ) external override
     {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized");
         require(
-            !supportedExtras[_key].isSupported,
+            !supportedExtras[key_].isSupported,
             "Key already active"
         );
-        supportedExtras[_key] = Extra(true, _unique, _immutable);
+        supportedExtras[key_] = Extra(true, unique_, immutable_);
     }
 
     function getExtras(
-        address _address,
-        bytes32 _key
-    ) public view
-    isSupported(_key, false)
-    returns (bytes memory _value)
+        address address_,
+        bytes32 key_
+    ) public view override
+    isSupported(key_, false)
+    returns (bytes memory value_)
     {
-        uint id = _idByAddress[0][_address];
+        uint id = _idByAddress[0][address_];
         require(
             id != 0,
             "Account not found"
         );
-        return extras[id][_key];
+        return extras[id][key_];
     }
 
 
     function setExtras(
-        bytes32 _key,
-        bytes calldata _value
-    ) external
-    isSupported(_key, false)
+        bytes32 key_,
+        bytes calldata value_
+    ) external override
+    isSupported(key_, false)
     {
         uint id = _idByAddress[0][msg.sender];
         require(
             id != 0,
             "Account not found"
         );
-        extras[id][_key] = _value;
-        emit DataChanged(id, _key, _value);
+        extras[id][key_] = value_;
+        emit DataChanged(id, key_, value_);
     }
 
 
     function getUniqueExtras(
-        address _address,
-        bytes32 _key
-    ) public view
-    isSupported(_key, true)
-    returns (bytes32 _value)
+        address address_,
+        bytes32 key_
+    ) public view override
+    isSupported(key_, true)
+    returns (bytes32 value_)
     {
-        uint id = _idByAddress[0][_address];
+        uint id = _idByAddress[0][address_];
         require(
             id != 0,
             "Account not found"
         );
-        return uniqueExtras[id][_key];
+        return uniqueExtras[id][key_];
     }
 
 
     function setUniqueExtras(
-        bytes32 _key,
-        bytes32 _value
-    ) external
-    isSupported(_key, true)
+        bytes32 key_,
+        bytes32 value_
+    ) external override
+    isSupported(key_, true)
     {
         uint id = _idByAddress[0][msg.sender];
         require(
             id != 0,
             "Account not found"
         );
-        if (supportedExtras[_key].isImmutable) {
+        if (supportedExtras[key_].isImmutable) {
             require(
-                uniqueExtras[id][_key] == 0,
+                uniqueExtras[id][key_] == 0,
                 "Immutable key"
             );
         } else {
             require(
-                uniqueExtras[id][_key] != _value,
+                uniqueExtras[id][key_] != value_,
                 "No change required"
             );
-            if (uniqueExtras[id][_key] != 0) {
-                uniqueExtraExists[_key][uniqueExtras[id][_key]] = false;
+            if (uniqueExtras[id][key_] != 0) {
+                uniqueExtraExists[key_][uniqueExtras[id][key_]] = false;
             }
         }
-        uniqueExtraExists[_key][_value] = true;
-        uniqueExtras[id][_key] = _value;
-        emit UniqueDataChanged(id, _key, _value);
+        uniqueExtraExists[key_][value_] = true;
+        uniqueExtras[id][key_] = value_;
+        emit UniqueDataChanged(id, key_, value_);
     }
 
     // solium-disable-next-line security/no-assign-params
     function setAddressAndIdByAppId(
-        uint _appId,
-        address _address,
-        uint _id
-    ) external
+        uint appId_,
+        address address_,
+        uint id_
+    ) external override
     {
         require(hasRole(MANAGER_ROLE, msg.sender), "Not authorized");
         require(
-            apps[_appId] > 0,
+            apps[appId_] > 0,
             "Unsupported app"
         );
         require(
-            _address != address(0),
-            "_address cannot be 0x0"
+            address_ != address(0),
+            "address_ cannot be 0x0"
         );
         require(
-            _idByAddress[_appId][_address] == 0,
-            "Existing identity found for _appId/_address"
+            _idByAddress[appId_][address_] == 0,
+            "Existing identity found for appId_/address_"
         );
-        if (_appId == 0) {
+        if (appId_ == 0) {
             lastTweedentityId++;
-            _id = lastTweedentityId;
+            id_ = lastTweedentityId;
         }
         require(
-            _addressById[_appId][_id] == address(0),
-            "Existing identity found for _appId/_id"
+            _addressById[appId_][id_] == address(0),
+            "Existing identity found for appId_/id_"
         );
 
-        _idByAddress[_appId][_address] = _id;
-        _addressById[_appId][_id] = _address;
-        totalIdentities[_appId]++;
-        emit IdentitySet(_appId, _id, _address);
+        _idByAddress[appId_][address_] = id_;
+        _addressById[appId_][id_] = address_;
+        totalIdentities[appId_]++;
+        emit IdentitySet(appId_, id_, address_);
     }
 
 
     function updateAddressByAppId(
-        uint _appId,
-        address _oldAddress,
-        address _newAddress
-    ) external
+        uint appId_,
+        address oldAddress_,
+        address newAddress_
+    ) external override
     {
         require(hasRole(MANAGER_ROLE, msg.sender), "Not authorized");
         require(
-            _newAddress != address(0),
-            "_newAddress cannot be 0x0"
+            newAddress_ != address(0),
+            "newAddress_ cannot be 0x0"
         );
         require(
-            _newAddress != _oldAddress,
+            newAddress_ != oldAddress_,
             "No change required"
         );
         require(
-            _idByAddress[_appId][_oldAddress] != 0,
-            "No identity found for _appId/_oldAddress"
+            _idByAddress[appId_][oldAddress_] != 0,
+            "No identity found for appId_/oldAddress_"
         );
         require(
-            _idByAddress[_appId][_newAddress] == 0,
-            "Existing identity found for _appId/_newAddress"
+            _idByAddress[appId_][newAddress_] == 0,
+            "Existing identity found for appId_/newAddress_"
         );
 
-        uint id = _idByAddress[_appId][_oldAddress];
-        _idByAddress[_appId][_newAddress] = id;
-        _addressById[_appId][id] = _newAddress;
-        delete _idByAddress[_appId][_oldAddress];
-        emit IdentityUpdated(_appId, id, _newAddress);
+        uint id = _idByAddress[appId_][oldAddress_];
+        _idByAddress[appId_][newAddress_] = id;
+        _addressById[appId_][id] = newAddress_;
+        delete _idByAddress[appId_][oldAddress_];
+        emit IdentityUpdated(appId_, id, newAddress_);
     }
 
 
     function profile(
-        address _address
-    ) public view
+        address address_
+    ) public view override
     returns (uint[] memory)
     {
         uint[] memory ids = new uint[](lastAppId);
         for (uint i = 0; i <= lastAppId; i++) {
-            if (_idByAddress[i][_address] != 0) {
-                ids[i] = _idByAddress[i][_address];
+            if (_idByAddress[i][address_] != 0) {
+                ids[i] = _idByAddress[i][address_];
             }
         }
         return ids;
     }
 
 
-    function profile() public view
+    function profile() public view override
     returns (uint[] memory)
     {
         return profile(msg.sender);
@@ -274,22 +251,22 @@ contract Tweedentities is Application {
 
 
     function idByAddress(
-        uint _appId,
-        address _address
-    ) public view
+        uint appId_,
+        address address_
+    ) public view override
     returns (uint)
     {
-        return _idByAddress[_appId][_address];
+        return _idByAddress[appId_][address_];
     }
 
 
     function addressById(
-        uint _appId,
-        uint _id
-    ) public view
+        uint appId_,
+        uint id_
+    ) public view override
     returns (address)
     {
-        return _addressById[_appId][_id];
+        return _addressById[appId_][id_];
     }
 
 }

@@ -9,14 +9,24 @@ pragma solidity ^0.8.0;
  * @dev Manages identities
  */
 
-import "./IStoreOptimized.sol";
-import "./IClaimerOptimized.sol";
+import "hardhat/console.sol";
+
 import "./ClaimerCaller.sol";
 import "./StoreCaller.sol";
-import "./Validatable.sol";
+import "./interfaces/ITweedentityManager.sol";
 
-contract TweedentityManager is ClaimerCaller, StoreCaller, Validatable {
+interface IValidatableMinimal {
 
+    function getChainId() external view returns (uint256);
+
+    function isValidForGroupId(uint groupId_, uint timestamp_) external view returns (bool);
+
+    function isSignedByValidator(uint groupId_, bytes32 hash_, bytes memory signature_) external view returns (address);
+}
+
+contract TweedentityManager is ClaimerCaller, StoreCaller, ITweedentityManager {
+
+    IValidatableMinimal internal _validator;
     uint private _currentTweedentityId;
 
     function _getNextTweedentityId()
@@ -26,7 +36,6 @@ contract TweedentityManager is ClaimerCaller, StoreCaller, Validatable {
         return _currentTweedentityId + 1;
     }
 
-
     function _incrementTokenTypeId()
     private
     {
@@ -34,129 +43,189 @@ contract TweedentityManager is ClaimerCaller, StoreCaller, Validatable {
     }
 
     modifier onlySignedByValidator(
-        uint _appId,
-        uint _id,
-        uint _timestamp,
-        bytes memory _signature
+        uint appId_,
+        uint id_,
+        uint timestamp_,
+        bytes memory signature_
     ) {
         require(
-            isSignedByValidator(
-                _appId,
+            _validator.isSignedByValidator(
+                appId_,
                 encodeForSignature(
                     msg.sender,
-                    _appId,
-                    _id,
-                    _timestamp
+                    appId_,
+                    id_,
+                    timestamp_
                 ),
-                _signature
-            ),
+                signature_
+            ) != address(0),
             "Invalid signature"
         );
         _;
     }
 
     constructor(
-        address _store,
-        address _claimer,
-        uint[] memory _appIds,
-        address[] memory _validators
+        address store_,
+        address claimer_,
+        address validator_
     )
-    StoreCaller(_store)
-    ClaimerCaller(_claimer)
-    Validatable(_appIds, _validators)
+    StoreCaller(store_)
+    ClaimerCaller(claimer_)
     {
+        _validator = IValidatableMinimal(validator_);
     }
 
-    function setMyIdentity() external
+    function setMyIdentity() external override
     onlyIfStoreSet
     {
         store.setAddressAndIdByAppId(0, msg.sender, 0);
     }
 
-
     function setIdentity(
-        uint _appId,
-        uint _id,
-        uint _timestamp,
-        bytes memory _signature
-    ) external
+        uint appId_,
+        uint id_,
+        uint timestamp_,
+        bytes memory signature_
+    ) external override
     onlyIfStoreSet
-    onlySignedByValidator(_appId, _id, _timestamp, _signature)
+    onlySignedByValidator(appId_, id_, timestamp_, signature_)
     {
-        isValidForGroupId(_appId, _timestamp);
-        store.setAddressAndIdByAppId(_appId, msg.sender, _id);
+        _validator.isValidForGroupId(appId_, timestamp_);
+        store.setAddressAndIdByAppId(appId_, msg.sender, id_);
     }
 
+
     function setMultipleIdentities(
-        uint[] memory _appIds,
-        uint[] memory _ids,
-        uint _timestamp,
-        bytes[] memory _signatures
-    ) external
+        uint[] memory appIds_,
+        uint[] memory ids_,
+        uint timestamp_,
+        bytes[] memory signatures_
+    ) external override
     onlyIfStoreSet
     {
-
-        for (uint i = 0; i < _appIds.length; i++) {
-            isValidForGroupId(_appIds[i], _timestamp);
-            require(
-                isSignedByValidator(
-                    _appIds[i],
-                    encodeForSignature(
-                        msg.sender,
-                        _appIds[i],
-                        _ids[i],
-                        _timestamp
-                    ),
-                    _signatures[i]
-                ),
-                "Invalid signature"
-            );
+        for (uint i = 0; i < appIds_.length; i++) {
+            if (appIds_[i] > 0) {
+                _validator.isValidForGroupId(appIds_[i], timestamp_);
+                require(
+                    _validator.isSignedByValidator(
+                        appIds_[i],
+                        encodeForSignature(
+                            msg.sender,
+                            appIds_[i],
+                            ids_[i],
+                            timestamp_
+                        ),
+                        signatures_[i]
+                    ) != address(0),
+                    "Invalid signature"
+                );
+            }
         }
         require(
-            _appIds.length == _ids.length,
+            appIds_.length == ids_.length,
             "AppIds and ids are inconsistent"
         );
-        for (uint i = 0; i < _appIds.length; i++) {
-            store.setAddressAndIdByAppId(_appIds[i], msg.sender, _ids[i]);
+        for (uint i = 0; i < appIds_.length; i++) {
+            store.setAddressAndIdByAppId(appIds_[i], msg.sender, ids_[i]);
         }
     }
 
 
     function updateIdentity(
-        uint _appId,
-        address _newAddress
-    ) external
+        uint appId_,
+        address newAddress_
+    ) external override
     onlyIfStoreSet
     {
-        store.updateAddressByAppId(_appId, msg.sender, _newAddress);
+        store.updateAddressByAppId(appId_, msg.sender, newAddress_);
     }
 
 
     function claimIdentity(
-        uint _appId,
-        uint _id,
-        uint _timestamp,
-        bytes memory _signature
-    ) external
+        uint appId_,
+        uint id_,
+        uint timestamp_,
+        bytes memory signature_
+    ) external override
     onlyIfClaimerSet
-    onlySignedByValidator(_appId, _id, _timestamp, _signature)
+    onlySignedByValidator(appId_, id_, timestamp_, signature_)
     {
-        isValidForGroupId(_appId, _timestamp);
-        claimer.setClaim(_appId, _id, msg.sender);
+        _validator.isValidForGroupId(appId_, timestamp_);
+        claimer.setClaim(appId_, id_, msg.sender);
     }
 
 
     function updateClaimedIdentity(
-        uint _appId,
-        uint _id,
-        uint _timestamp,
-        bytes memory _signature
-    ) external
+        uint appId_,
+        uint id_,
+        uint timestamp_,
+        bytes memory signature_
+    ) external override
     onlyIfClaimerSet
-    onlySignedByValidator(_appId, _id, _timestamp, _signature)
+    onlySignedByValidator(appId_, id_, timestamp_, signature_)
     {
-        isValidForGroupId(_appId, _timestamp);
-        claimer.setClaimedIdentity(_appId, _id, msg.sender);
+        _validator.isValidForGroupId(appId_, timestamp_);
+        claimer.setClaimedIdentity(appId_, id_, msg.sender);
+    }
+
+    function encodeForSignature(
+        address address_,
+        uint groupId_,
+        uint id_,
+        uint timestamp_
+    ) public view override
+    returns (bytes32)
+    {
+        return keccak256(
+            abi.encodePacked(
+                "\x19\x00",
+                address_,
+                _validator.getChainId(),
+                groupId_,
+                id_,
+                timestamp_
+            )
+        );
+    }
+
+    function encodeForSignature(
+        address address_,
+        uint[] memory groupIds_,
+        uint[] memory ids_,
+        uint timestamp_
+    ) public view override
+    returns (bytes32)
+    {
+        return keccak256(
+            abi.encodePacked(
+                "\x19\x00",
+                address_,
+                _validator.getChainId(),
+                groupIds_,
+                ids_,
+                timestamp_
+            )
+        );
+    }
+
+    function encodeForSignature(
+        address address_,
+        uint groupId_,
+        uint[] memory ids_,
+        uint timestamp_
+    ) public view override
+    returns (bytes32)
+    {
+        return keccak256(
+            abi.encodePacked(
+                "\x19\x00",
+                address_,
+                _validator.getChainId(),
+                groupId_,
+                ids_,
+                timestamp_
+            )
+        );
     }
 
 }

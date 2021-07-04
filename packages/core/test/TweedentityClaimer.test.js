@@ -109,7 +109,7 @@ describe("TweedentityClaimer", async function () {
 
       await assertThrowsMessage(
           claimer.connect(manager).setClaim(1, tid, addr0),
-          '_claimer cannot be 0x0')
+          'claimer_ cannot be 0x0')
 
     });
 

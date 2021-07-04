@@ -1,7 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-web3");
-// require("hardhat-gas-reporter");
+require("hardhat-gas-reporter");
 
 let env = require('./env.json');
 
@@ -38,6 +38,9 @@ module.exports = {
     localhost: {
       url: "http://localhost:8545"
     },
+    ganache: {
+      url: "http://localhost:7545"
+    },
     goerli: {
       url: `https://goerli.infura.io/v3/${env.infuraApiKey}`,
       accounts: [env.privateKey]
@@ -48,7 +51,8 @@ module.exports = {
     },
     ethereum: {
       url: `https://mainnet.infura.io/v3/${env.infuraApiKey}`,
-      accounts: [env.privateKey]
+      accounts: [env.privateKey],
+      gasPrice: 5000000000
     },
     bsc_testnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",

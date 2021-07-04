@@ -227,7 +227,7 @@ describe("Tweedentities", async function () {
 
       await assertThrowsMessage(
           store.connect(manager).setAddressAndIdByAppId(1, user.address, 3454),
-          'Existing identity found for _appId/_address')
+          'Existing identity found for appId_/address_')
 
     });
 
@@ -236,7 +236,7 @@ describe("Tweedentities", async function () {
 
       await assertThrowsMessage(
           store.connect(manager).setAddressAndIdByAppId(1, user2.address, tid),
-          'Existing identity found for _appId/_id')
+          'Existing identity found for appId_/id_')
 
 
     });
@@ -257,7 +257,7 @@ describe("Tweedentities", async function () {
 
       await assertThrowsMessage(
           store.connect(manager).setAddressAndIdByAppId(1, addr0, 23432),
-          '_address cannot be 0x0')
+          'address_ cannot be 0x0')
 
     });
 
@@ -307,7 +307,7 @@ describe("Tweedentities", async function () {
 
       await assertThrowsMessage(
           store.connect(manager).updateAddressByAppId(1, user2.address, user3.address),
-          'No identity found for _appId/_oldAddress')
+          'No identity found for appId_/oldAddress_')
 
     });
 
@@ -317,7 +317,7 @@ describe("Tweedentities", async function () {
 
       await assertThrowsMessage(
           store.connect(manager).updateAddressByAppId(1, user3.address, user.address),
-          "Existing identity found for _appId/_newAddress")
+          "Existing identity found for appId_/newAddress_")
 
     });
 
@@ -326,7 +326,7 @@ describe("Tweedentities", async function () {
 
       await assertThrowsMessage(
           store.connect(manager).updateAddressByAppId(1, user.address, addr0),
-          '_newAddress cannot be 0x0')
+          'newAddress_ cannot be 0x0')
     })
 
   })

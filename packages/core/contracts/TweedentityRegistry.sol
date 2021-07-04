@@ -10,47 +10,46 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+import "./interfaces/ITweedentityRegistry.sol";
 
-contract TweedentityRegistry is Ownable {
-
-    event RegistryUpdated(bytes32 _contract, address _contractAddress);
+contract TweedentityRegistry is Ownable, ITweedentityRegistry {
 
     mapping(bytes32 => address) public registry;
 
     constructor(
-        bytes32[] memory _names,
-        address[] memory _addresses
+        bytes32[] memory names_,
+        address[] memory addresses_
     ) {
-        for (uint i = 0; i < _names.length; i++) {
-            setData(_names[i], _addresses[i]);
+        for (uint i = 0; i < names_.length; i++) {
+            setData(names_[i], addresses_[i]);
         }
     }
 
     function setData(
-        bytes32 _name,
-        address _address
+        bytes32 name_,
+        address address_
     )
-    public
+    public override
     onlyOwner
     {
-        if (_address != address(0)) {
-            registry[_name] = _address;
+        if (address_ != address(0)) {
+            registry[name_] = address_;
         }
     }
 
     function updateData(
-        bytes32 _name,
-        address _address
+        bytes32 name_,
+        address address_
     )
-    public
+    external override
     onlyOwner
     {
         require(
-            _address != address(0),
+            address_ != address(0),
             "Null address"
         );
-        registry[_name] = _address;
-        emit RegistryUpdated(_name, _address);
+        registry[name_] = address_;
+        emit RegistryUpdated(name_, address_);
 
     }
 
