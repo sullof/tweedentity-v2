@@ -1,0 +1,104 @@
+/*.bd-placeholder-img {*/
+/*    font-size: 1.125rem;*/
+/*    text-anchor: middle;*/
+/*    -webkit-user-select: none;*/
+/*    -moz-user-select: none;*/
+/*    -ms-user-select: none;*/
+/*    user-select: none;*/
+/*}*/
+
+/*@media (min-width: 768px) {*/
+/*    .bd-placeholder-img-lg {*/
+/*        font-size: 3.5rem;*/
+/*    }*/
+/*}*/
+
+/*main > .container {*/
+/*    padding: 60px 15px 0;*/
+/*}*/
+
+body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    color: #0B1122;
+    font-weight: 300;
+    background: url(../images/background.png) repeat-y;
+}
+
+.imageLogo {
+    display: block;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    position: absolute;
+    height: 56px;
+}
+
+.command, a {
+    color: #17AFD0;
+    cursor: pointer;
+}
+
+.footer {
+    border-top: 1px dotted #ddd;
+    text-align: center;
+    padding-top: 12px;
+    color: #888;
+}
+
+.footer * {
+    margin: 0 5px;
+    font-weight: 300;
+
+}
+
+.footer a {
+    color: #888;
+}
+
+.footer a:hover {
+    color: #000;
+}
+
+.navbar-collapse a {
+    font-weight: 300;
+    padding: .5rem 1rem !important;
+    font-family: 'Roboto', sans-serif;
+
+}
+
+.navbar-light .navbar-brand {
+    margin-top: -4px;
+}
+
+.navbar-text {
+    padding: .5rem 1rem !important;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+}
+
+.roboto300 {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+}
+
+.centered {
+    text-align:center;
+}
+
+.strength div div {
+    height: 4px !important;
+}
+
+.bg-light {
+    background-color: #EAF8FB !important;
+    border-bottom: 1px dotted aquamarine;
+}
+
+@media (min-width: 1200px) {
+    .container, .container-lg, .container-md, .container-sm, .container-xl {
+        /*max-width: 1400px !important;*/
+    }
+}
+
